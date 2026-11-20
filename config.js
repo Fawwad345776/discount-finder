@@ -3,5 +3,5 @@
 window.DF_CONFIG = {
   apiKey: 'AIzaSyDxDv3qp-tlCRy_Kd9_Uv-a56aDyEZM3nk',        // Firebase > Project settings > General > Web API Key
   projectId: 'test-6a737',     // Firebase > Project settings > General > Project ID
-  adminEmail: 'info.mfsoft@gmail.com'       // the email you will log into admin.html with
+  adminEmail: 'fawwadshamim.fs@gmail.com'       // the email you will log into admin.html with
 };
