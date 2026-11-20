@@ -23,7 +23,7 @@ export class Firestore {
     return this.token;
   }
   async call(url, opt = {}) {
-    const r = await fetch(url, { ...opt, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await this.auth() } });
+    const r = await fetch(url, { ...opt, signal: AbortSignal.timeout(30000), headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await this.auth() } });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { const e = new Error(j.error?.message || 'HTTP ' + r.status); e.status = r.status; throw e; }
     return j;

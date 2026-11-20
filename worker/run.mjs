@@ -32,7 +32,7 @@ async function getText(url, fetchFn) {
 async function igPosts(username, env, fetchFn) {
   if (!env.IG_USER_ID || !env.META_TOKEN || !username) return null;
   const fields = `business_discovery.username(${username}){media.limit(12){id,caption,permalink,media_url,thumbnail_url,timestamp}}`;
-  const r = await fetchFn(`https://graph.facebook.com/v21.0/${env.IG_USER_ID}?fields=${encodeURIComponent(fields)}&access_token=${env.META_TOKEN}`);
+  const r = await fetchFn(`https://graph.facebook.com/v21.0/${env.IG_USER_ID}?fields=${encodeURIComponent(fields)}&access_token=${env.META_TOKEN}`, { signal: AbortSignal.timeout(30000) });
   const j = await r.json();
   if (!r.ok) throw new Error('Instagram: ' + (j.error?.message || r.status));
   return (j.business_discovery?.media?.data || []).map(m => ({ ...m, time: new Date(m.timestamp) }));
@@ -40,7 +40,7 @@ async function igPosts(username, env, fetchFn) {
 
 let pickedModel = null;
 async function pickModel(env, fetchFn, avoid) {
-  const r = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${env.GEMINI_API_KEY}`);
+  const r = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${env.GEMINI_API_KEY}`, { signal: AbortSignal.timeout(20000) });
   const j = await r.json();
   const ver = n => (n.match(/gemini-(\d+(?:\.\d+)?)/) || [0, 0])[1] * 1;
   const ok = (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
@@ -64,8 +64,10 @@ ${text.slice(0, 15000)}`;
   const body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.1 } });
   for (let attempt = 0; attempt < 2; attempt++) {
     const model = pickedModel || env.GEMINI_MODEL || 'gemini-3.8-flash';
-    const r = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+    let r;
+    try { r = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: AbortSignal.timeout(90000) }); }
+    catch (e) { console.warn(`  AI timeout/network (${model}): ${e.message}`); break; }
     const j = await r.json().catch(() => ({}));
     if (r.ok) {
       try { pickedModel = model; return { deals: JSON.parse(j.candidates[0].content.parts[0].text).deals || [], via: 'ai' }; }
@@ -147,7 +149,9 @@ export async function main({ db, env = process.env, fetchFn = fetch, now = new D
 
   // 3: discover new offers
   console.log(`== Scanning ${brands.length} brands`);
+  const deadline = Date.now() + 20 * 60e3; // stay well inside the 30-min job limit
   for (const b of brands) {
+    if (Date.now() > deadline) { console.log('== Time budget reached, rest next run'); break; }
     const tz = tzFor(b.country, (b.cities || [])[0]);
     const patch = { lastRun: now };
     try {
