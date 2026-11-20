@@ -10,4 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: git push -f origin HEAD:gh-pages
+        with:
+          fetch-depth: 0
+      - name: Publish latest main (keeps the cities list)
+        run: |
+          git fetch origin main
+          git push -f origin origin/main:gh-pages
