@@ -1,0 +1,192 @@
+[
+ {
+  "country": "PK",
+  "name": "Khaadi",
+  "category": "Fashion",
+  "offersUrl": "https://pk.khaadi.com/",
+  "instagram": "khaadiofficial",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Gul Ahmed",
+  "category": "Fashion",
+  "offersUrl": "https://www.gulahmedshop.com/",
+  "instagram": "gulahmedfashion",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Outfitters",
+  "category": "Fashion",
+  "offersUrl": "https://outfitters.com.pk/",
+  "instagram": "outfitterspk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Sapphire",
+  "category": "Fashion",
+  "offersUrl": "https://pk.sapphireonline.pk/",
+  "instagram": "sapphirepakistan",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Breakout",
+  "category": "Fashion",
+  "offersUrl": "https://breakout.com.pk/",
+  "instagram": "breakoutpk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Bonanza Satrangi",
+  "category": "Fashion",
+  "offersUrl": "https://bonanzasatrangi.com/",
+  "instagram": "bonanzasatrangi",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Naheed",
+  "category": "Grocery",
+  "offersUrl": "https://www.naheed.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
+  "name": "Xcite",
+  "category": "Electronics",
+  "offersUrl": "https://www.xcite.com/",
+  "instagram": "xcitekuwait",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
+  "name": "Eureka",
+  "category": "Electronics",
+  "offersUrl": "https://www.eureka.com.kw/",
+  "instagram": "eurekakuwait",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
+  "name": "Max Fashion Kuwait",
+  "category": "Fashion",
+  "offersUrl": "https://www.maxfashion.com/kw/en/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
+  "name": "Centrepoint Kuwait",
+  "category": "Fashion",
+  "offersUrl": "https://www.centrepointstores.com/kw/en/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "AE",
+  "name": "Sharaf DG",
+  "category": "Electronics",
+  "offersUrl": "https://uae.sharafdg.com/",
+  "instagram": "sharafdg",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "AE",
+  "name": "Max Fashion UAE",
+  "category": "Fashion",
+  "offersUrl": "https://www.maxfashion.com/ae/en/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "AE",
+  "name": "Centrepoint UAE",
+  "category": "Fashion",
+  "offersUrl": "https://www.centrepointstores.com/ae/en/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "AE",
+  "name": "Carrefour UAE",
+  "category": "Grocery",
+  "offersUrl": "https://www.carrefouruae.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "QA",
+  "name": "Max Fashion Qatar",
+  "category": "Fashion",
+  "offersUrl": "https://www.maxfashion.com/qa/en/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "QA",
+  "name": "Lulu Qatar",
+  "category": "Grocery",
+  "offersUrl": "https://www.luluhypermarket.com/en-qa/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "SA",
+  "name": "Extra",
+  "category": "Electronics",
+  "offersUrl": "https://www.extra.com/en-sa/",
+  "instagram": "extrastores",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "SA",
+  "name": "Max Fashion Saudi",
+  "category": "Fashion",
+  "offersUrl": "https://www.maxfashion.com/sa/en/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ }
+]

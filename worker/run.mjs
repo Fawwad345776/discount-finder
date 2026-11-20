@@ -78,7 +78,16 @@ async function saveDeals(db, brand, found, source, now, stats) {
 
 export async function main({ db, env = process.env, fetchFn = fetch, now = new Date() }) {
   const stats = { expired: 0, rechecked: 0, hidden: 0, toReview: 0, added: 0, errors: 0 };
-  const brands = (await db.query('brands', [], 5000)).filter(b => b.active !== false);
+  let brands = (await db.query('brands', [], 5000));
+  if (!brands.length) { // first run: load the starter brand list
+    try {
+      const seed = JSON.parse(fs.readFileSync(new URL('../data/brands-seed.json', import.meta.url)));
+      for (const b of seed) await db.createWithId('brands', hash(b.country + b.name).slice(0, 20), { ...b, active: true, createdAt: now });
+      console.log(`== Seeded ${seed.length} starter brands`);
+      brands = await db.query('brands', [], 5000);
+    } catch (e) { console.warn('seed skipped:', e.message); }
+  }
+  brands = brands.filter(b => b.active !== false);
   const brandById = Object.fromEntries(brands.map(b => [b.id, b]));
   const igCache = {};
   const ig = async (u) => (u in igCache ? igCache[u] : (igCache[u] = await igPosts(u, env, fetchFn).catch(e => (console.warn('  ' + e.message), null))));
