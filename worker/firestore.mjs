@@ -40,6 +40,7 @@ export class Firestore {
     try { await this.call(`${this.base}/${collection}?documentId=${id}`, { method: 'POST', body: JSON.stringify({ fields: enc(data).mapValue.fields }) }); return true; }
     catch (e) { if (e.status === 409) return false; throw e; }
   }
+  async remove(collection, id) { await this.call(`${this.base}/${collection}/${id}`, { method: 'DELETE' }); }
   async update(collection, id, data) {
     const mask = Object.keys(data).map(k => 'updateMask.fieldPaths=' + encodeURIComponent(k)).join('&');
     await this.call(`${this.base}/${collection}/${id}?${mask}`, { method: 'PATCH', body: JSON.stringify({ fields: enc(data).mapValue.fields }) });

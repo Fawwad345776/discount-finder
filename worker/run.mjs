@@ -38,8 +38,20 @@ async function igPosts(username, env, fetchFn) {
   return (j.business_discovery?.media?.data || []).map(m => ({ ...m, time: new Date(m.timestamp) }));
 }
 
+let pickedModel = null;
+async function pickModel(env, fetchFn, avoid) {
+  const r = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${env.GEMINI_API_KEY}`);
+  const j = await r.json();
+  const ver = n => (n.match(/gemini-(\d+(?:\.\d+)?)/) || [0, 0])[1] * 1;
+  const ok = (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+    .map(m => m.name.replace('models/', ''))
+    .filter(n => /^gemini-[\d.]+-flash$/.test(n) && n !== avoid)
+    .sort((a, b) => ver(b) - ver(a));
+  return ok[0] || null;
+}
+// returns { deals, via: 'ai' | 'regex' | 'failed' }
 async function aiExtract(text, brand, tz, env, fetchFn) {
-  if (!env.GEMINI_API_KEY) return regexExtract(text);
+  if (!env.GEMINI_API_KEY) return { deals: regexExtract(text), via: 'regex' };
   const cities = citiesOf(brand.country).slice(0, 40).map(c => c[0]);
   const prompt = `You read promotional text from the brand "${brand.name}" (country code ${brand.country}).
 Local date/time now: ${localNow(tz)} (${tz}). Brand serves cities: ${(brand.cities || ['ALL']).join(', ')}. Known cities: ${cities.join(', ')}.
@@ -49,17 +61,29 @@ JSON: {"deals":[{"title":"short English title","discount":"e.g. 50% OFF / Buy 1 
 "ends":"YYYY-MM-DDTHH:mm or null (if only a date is given use 23:59)","confidence":0.0-1.0}]}
 Text:
 ${text.slice(0, 15000)}`;
-  const model = env.GEMINI_MODEL || 'gemini-2.5-flash';
-  const r = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.1 } }) });
-  const j = await r.json();
-  if (!r.ok) { console.warn('  AI error, using fallback:', j.error?.message); return regexExtract(text); }
-  try { return JSON.parse(j.candidates[0].content.parts[0].text).deals || []; } catch { return regexExtract(text); }
+  const body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.1 } });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const model = pickedModel || env.GEMINI_MODEL || 'gemini-3.8-flash';
+    const r = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok) {
+      try { pickedModel = model; return { deals: JSON.parse(j.candidates[0].content.parts[0].text).deals || [], via: 'ai' }; }
+      catch { return { deals: [], via: 'ai' }; }
+    }
+    const msg = j.error?.message || String(r.status);
+    console.warn(`  AI error (${model}): ${msg}`);
+    if (attempt === 0 && (r.status === 404 || /model|not found|no longer available|deprecated/i.test(msg))) {
+      const next = await pickModel(env, fetchFn, model).catch(() => null);
+      if (next) { console.log('  switching AI model to', next); pickedModel = next; continue; }
+    }
+    break;
+  }
+  return { deals: [], via: 'failed' }; // AI key set but AI failed: save nothing, retry next run
 }
 
-async function saveDeals(db, brand, found, source, now, stats) {
-  for (const f of found) {
+async function saveDeals(db, brand, res, source, now, stats) {
+  for (const f of res.deals) {
     if (!f || !f.title) continue;
     const city = f.city && f.city !== 'null' ? f.city : 'ALL';
     const tz = tzFor(brand.country, city);
@@ -70,7 +94,7 @@ async function saveDeals(db, brand, found, source, now, stats) {
       category: CATS.includes(f.category) ? f.category : (brand.category || 'Other'),
       country: brand.country, city, tz, startsAt, expiresAt,
       sourceType: source.type, sourceUrl: source.url, sourceId: source.id || null, image: source.image || '',
-      status: (f.confidence ?? 0) >= 0.7 ? 'active' : 'pending', lastChecked: now, createdAt: now };
+      status: (f.confidence ?? 0) >= 0.7 ? 'active' : 'pending', extractor: res.via, lastChecked: now, createdAt: now };
     const created = await db.createWithId('deals', dealId(brand.id, source.id || source.url, deal.title), deal);
     if (created) { stats.added++; console.log(`  + ${deal.status.toUpperCase()} ${deal.brand}: ${deal.title} (${deal.discount}) ${expiresAt ? 'ends ' + expiresAt.toISOString() : 'no end date'}`); }
   }
@@ -91,6 +115,12 @@ export async function main({ db, env = process.env, fetchFn = fetch, now = new D
   const brandById = Object.fromEntries(brands.map(b => [b.id, b]));
   const igCache = {};
   const ig = async (u) => (u in igCache ? igCache[u] : (igCache[u] = await igPosts(u, env, fetchFn).catch(e => (console.warn('  ' + e.message), null))));
+
+  // 0: once AI is available, remove low-quality pending deals made by the regex fallback
+  if (env.GEMINI_API_KEY) {
+    for (const d of await db.query('deals', [['status', 'EQUAL', 'pending']], 5000))
+      if (d.extractor !== 'ai' && d.sourceType !== 'manual') { await db.remove('deals', d.id); stats.cleaned = (stats.cleaned || 0) + 1; }
+  }
 
   // 1 + 2: maintenance of live deals
   console.log('== Checking live deals');
@@ -124,11 +154,14 @@ export async function main({ db, env = process.env, fetchFn = fetch, now = new D
       if (b.offersUrl) {
         const page = await getText(b.offersUrl, fetchFn);
         const h = page.ok ? hash(page.text) : null;
-        if (page.ok && h !== b.lastHash && OFFER_RE.test(page.text)) {
-          console.log(`- ${b.name}: website changed`);
-          await saveDeals(db, b, await aiExtract(page.text, b, tz, env, fetchFn), { type: 'website', url: b.offersUrl }, now, stats);
-        }
-        if (h) patch.lastHash = h;
+        const want = env.GEMINI_API_KEY ? 'ai' : 'regex';
+        if (page.ok && (h !== b.lastHash || b.lastExtractor !== want) && OFFER_RE.test(page.text)) {
+          console.log(`- ${b.name}: checking website`);
+          const res = await aiExtract(page.text, b, tz, env, fetchFn);
+          await saveDeals(db, b, res, { type: 'website', url: b.offersUrl }, now, stats);
+          if (res.via !== 'failed') { patch.lastHash = h; patch.lastExtractor = res.via; }
+        } else if (h) patch.lastHash = h;
+        if (!page.ok) console.log(`- ${b.name}: website returned ${page.status}`);
       }
       if (b.instagram) {
         const posts = await ig(b.instagram);
