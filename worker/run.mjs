@@ -10,7 +10,7 @@ import { Firestore } from './firestore.mjs';
 import { NO_DATE_TTL, IG_MAX_AGE, zonedToUtc, localNow, htmlToText, hash, dealId, regexExtract, stillOnPage, OFFER_RE } from './core.mjs';
 
 const CATS = ['Fashion', 'Food', 'Electronics', 'Grocery', 'Beauty', 'Home', 'Travel', 'Other'];
-const UA = 'Mozilla/5.0 (compatible; DiscountFinderBot/1.0; +https://fawwad345776.github.io/discount-finder/)';
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36';
 
 const cityCache = {};
 function citiesOf(cc) {
@@ -24,7 +24,7 @@ function tzFor(cc, city) {
 }
 
 async function getText(url, fetchFn) {
-  const r = await fetchFn(url, { headers: { 'User-Agent': UA, 'Accept-Language': 'en,ar;q=0.8' }, redirect: 'follow', signal: AbortSignal.timeout(20000) });
+  const r = await fetchFn(url, { headers: { 'User-Agent': UA, 'Accept': 'text/html,application/xhtml+xml', 'Accept-Language': 'en,ar;q=0.8' }, redirect: 'follow', signal: AbortSignal.timeout(20000) });
   if (!r.ok) return { ok: false, status: r.status, text: '' };
   return { ok: true, status: r.status, text: htmlToText(await r.text()).slice(0, 60000) };
 }
@@ -38,16 +38,16 @@ async function igPosts(username, env, fetchFn) {
   return (j.business_discovery?.media?.data || []).map(m => ({ ...m, time: new Date(m.timestamp) }));
 }
 
-let pickedModel = null;
+let aiModels = null;
 async function pickModel(env, fetchFn, avoid) {
   const r = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${env.GEMINI_API_KEY}`, { signal: AbortSignal.timeout(20000) });
   const j = await r.json();
   const ver = n => (n.match(/gemini-(\d+(?:\.\d+)?)/) || [0, 0])[1] * 1;
   const ok = (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
     .map(m => m.name.replace('models/', ''))
-    .filter(n => /^gemini-[\d.]+-flash$/.test(n) && n !== avoid)
-    .sort((a, b) => ver(b) - ver(a));
-  return ok[0] || null;
+    .filter(n => /^gemini-[\d.]+-flash(-lite)?$/.test(n) && n !== avoid)
+    .sort((a, b) => ver(b) - ver(a) || a.length - b.length);
+  return ok;
 }
 // returns { deals, via: 'ai' | 'regex' | 'failed' }
 async function aiExtract(text, brand, tz, env, fetchFn) {
@@ -62,24 +62,27 @@ JSON: {"deals":[{"title":"short English title","discount":"e.g. 50% OFF / Buy 1 
 Text:
 ${text.slice(0, 15000)}`;
   const body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.1 } });
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const model = pickedModel || env.GEMINI_MODEL || 'gemini-3.8-flash';
-    let r;
-    try { r = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: AbortSignal.timeout(90000) }); }
-    catch (e) { console.warn(`  AI timeout/network (${model}): ${e.message}`); break; }
-    const j = await r.json().catch(() => ({}));
-    if (r.ok) {
-      try { pickedModel = model; return { deals: JSON.parse(j.candidates[0].content.parts[0].text).deals || [], via: 'ai' }; }
-      catch { return { deals: [], via: 'ai' }; }
+  if (!aiModels) aiModels = [env.GEMINI_MODEL || 'gemini-3.8-flash', ...(await pickModel(env, fetchFn, env.GEMINI_MODEL || 'gemini-3.8-flash').catch(() => []))].slice(0, 4);
+  for (const model of aiModels) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      let r;
+      try { r = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: AbortSignal.timeout(90000) }); }
+      catch (e) { console.warn(`  AI network (${model}): ${e.message}`); break; }
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) {
+        if (aiModels[0] !== model) aiModels = [model, ...aiModels.filter(m => m !== model)]; // remember the one that works
+        try { return { deals: JSON.parse(j.candidates[0].content.parts[0].text).deals || [], via: 'ai' }; }
+        catch { return { deals: [], via: 'ai' }; }
+      }
+      const msg = j.error?.message || String(r.status);
+      if (r.status === 503 || r.status === 429 || /high demand|overloaded|rate/i.test(msg)) {
+        console.warn(`  AI busy (${model}), retry ${attempt + 1}/3`);
+        await new Promise(res => setTimeout(res, env.AI_WAIT_MS ? +env.AI_WAIT_MS : 8000 * (attempt + 1)));
+        continue;
+      }
+      console.warn(`  AI error (${model}): ${msg}`); break; // model missing/other -> try next model
     }
-    const msg = j.error?.message || String(r.status);
-    console.warn(`  AI error (${model}): ${msg}`);
-    if (attempt === 0 && (r.status === 404 || /model|not found|no longer available|deprecated/i.test(msg))) {
-      const next = await pickModel(env, fetchFn, model).catch(() => null);
-      if (next) { console.log('  switching AI model to', next); pickedModel = next; continue; }
-    }
-    break;
   }
   return { deals: [], via: 'failed' }; // AI key set but AI failed: save nothing, retry next run
 }
@@ -103,6 +106,7 @@ async function saveDeals(db, brand, res, source, now, stats) {
 }
 
 export async function main({ db, env = process.env, fetchFn = fetch, now = new Date() }) {
+  aiModels = null;
   const stats = { expired: 0, rechecked: 0, hidden: 0, toReview: 0, added: 0, errors: 0 };
   let brands = (await db.query('brands', [], 5000));
   if (!brands.length) { // first run: load the starter brand list
