@@ -14,7 +14,7 @@ const rl = readline.createInterface({ input: fs.createReadStream(src), crlfDelay
 for await (const line of rl) {
   const f = line.split('\t');
   if (f.length < 18) continue;
-  const name = f[1], cc = f[8], pop = Number(f[14]) || 0, tz = f[17];
+  const name = f[2] || f[1], cc = f[8], pop = Number(f[14]) || 0, tz = f[17];
   if (!name || !cc || !tz) continue;
   if (!byCountry.has(cc)) byCountry.set(cc, new Map());
   const m = byCountry.get(cc);
