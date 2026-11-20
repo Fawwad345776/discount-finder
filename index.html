@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discount Finder: Offers & Deals in your city</title>
+<meta name="description" content="Find live discounts, sales and offers in your country and city — every country, updated every 6 hours.">
+<meta property="og:title" content="Discount Finder: Offers & Deals">
+<meta property="og:description" content="Live discounts, sales & offers in your city — every country.">
+<meta name="theme-color" content="#ff4d2e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23ff4d2e'/%3E%3Ctext x='32' y='44' font-family='Arial' font-weight='900' font-size='34' text-anchor='middle' fill='%23fff'%3E%25%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--red:#ff4d2e;--red2:#ff7a45;--ink:#16181d;--muted:#6b7280;--bg:#f6f7fb;--card:#fff;--line:#e8eaf0;--green:#12a150;--amber:#f59e0b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  a{color:inherit}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+  header{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;padding:18px 0 70px}
+  .top{display:flex;align-items:center;justify-content:space-between}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.25rem}
+  .logo i{width:38px;height:38px;border-radius:12px;background:#fff;color:var(--red);display:grid;place-items:center;font-style:normal;font-size:1.3rem;font-weight:900}
+  .logo small{display:block;font-size:.72rem;font-weight:600;opacity:.85}
+  header h1{font-size:clamp(1.6rem,5vw,2.4rem);font-weight:800;line-height:1.15;margin:26px 0 6px}
+  header p{opacity:.92}
+  .finder{background:#fff;border-radius:20px;padding:14px;margin-top:-48px;box-shadow:0 14px 40px rgba(22,24,29,.12);display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:10px}
+  .finder label{display:block;font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px 4px}
+  select,input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:.95rem;background:#fff;color:var(--ink)}
+  select:focus,input:focus{outline:none;border-color:var(--red)}
+  @media(max-width:760px){.finder{grid-template-columns:1fr}}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:16px 0 4px;scrollbar-width:none}
+  .chip{flex:none;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-weight:600;font-size:.88rem;cursor:pointer;font-family:inherit}
+  .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .bar{display:flex;justify-content:space-between;align-items:center;margin:10px 0 12px;color:var(--muted);font-size:.9rem;gap:10px;flex-wrap:wrap}
+  .demo{background:#fff4d6;color:#7a5200;border-radius:12px;padding:10px 14px;font-size:.88rem;font-weight:600;margin-top:14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;padding-bottom:40px}
+  .deal{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
+  .pic{height:130px;background:linear-gradient(135deg,#ffe1d6,#ffd0bd);display:grid;place-items:center;position:relative}
+  .pic img{width:100%;height:100%;object-fit:cover}
+  .pic b{font-size:2.6rem;font-weight:800;color:var(--red);opacity:.85}
+  .off{position:absolute;top:10px;left:10px;background:var(--red);color:#fff;font-weight:800;font-size:.85rem;padding:5px 10px;border-radius:10px}
+  .body{padding:14px;display:flex;flex-direction:column;gap:4px;flex:1}
+  .brand{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .body h3{font-size:1.02rem;line-height:1.3}
+  .body p{color:var(--muted);font-size:.86rem}
+  .meta{margin-top:auto;padding-top:10px;display:flex;flex-direction:column;gap:3px;font-size:.82rem;font-weight:600}
+  .ends{color:#b42318}.ok{color:var(--green)}.loc{color:var(--muted)}
+  .go{margin:0 14px 14px;text-align:center;text-decoration:none;background:var(--ink);color:#fff;border-radius:12px;padding:10px;font-weight:700;font-size:.9rem}
+  .empty{text-align:center;padding:50px 10px;color:var(--muted)}
+  .empty b{display:block;font-size:2.4rem}
+  footer{text-align:center;color:var(--muted);font-size:.82rem;padding:24px 0 34px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="top"><div class="logo"><i>%</i><span>Discount Finder<small>Offers & Deals</small></span></div></div>
+  <h1>Every sale in your city,<br>in one place.</h1>
+  <p>Discounts and offers from brands in every country — checked every 6 hours.</p>
+</div></header>
+
+<main class="wrap">
+  <div class="finder">
+    <div><label for="country">Country</label><select id="country"></select></div>
+    <div><label for="city">City</label><input id="city" list="cityList" placeholder="All cities" autocomplete="off"><datalist id="cityList"></datalist></div>
+    <div><label for="q">Search</label><input id="q" type="search" placeholder="Brand or product…"></div>
+  </div>
+  <div id="demo" class="demo" hidden>Demo mode — showing sample deals. Real deals appear once Firebase is connected.</div>
+  <div class="chips" id="chips"></div>
+  <div class="bar"><span id="count">Loading…</span><span id="updated"></span></div>
+  <div class="grid" id="grid"></div>
+</main>
+<footer>© <span id="yr"></span> Discount Finder · by MF Soft</footer>
+
+<script src="config.js"></script>
+<script src="lib.js"></script>
+<script>
+const CATS=['All','Fashion','Food','Electronics','Grocery','Beauty','Home','Travel','Other'];
+const $=id=>document.getElementById(id);
+const flag=cc=>cc.replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt()));
+let countries=[], cities=[], deals=[], cat='All';
+const S={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+function guessCountry(){
+  const saved=S.get('df-country'); if(saved) return saved;
+  const reg=(navigator.languages||[navigator.language]).map(l=>(l.split('-')[1]||'').toUpperCase()).find(r=>r.length===2);
+  return reg||'AE';
+}
+async function loadCountries(){
+  countries=await (await fetch('data/countries.json')).json();
+  $('country').innerHTML=countries.map(c=>`<option value="${c.code}">${flag(c.code)} ${c.name}</option>`).join('');
+  const g=guessCountry(); $('country').value=countries.some(c=>c.code===g)?g:'AE';
+}
+async function loadCities(){
+  cities=[]; $('cityList').innerHTML='';
+  try{ const r=await fetch(`data/cities/${$('country').value}.json`); if(r.ok) cities=await r.json(); }catch(e){}
+  $('cityList').innerHTML=cities.slice(0,3000).map(c=>`<option value="${c[0]}">`).join('');
+  const saved=S.get('df-city-'+$('country').value); $('city').value=saved||'';
+}
+function demoDeals(cc){
+  const now=Date.now(), H=3600e3, city=(cities[0]||['Capital'])[0], tz=(cities[0]||[,'UTC'])[1];
+  const mk=(brand,title,discount,category,o)=>Object.assign({id:brand+title,brand,title,discount,category,country:cc,city:'ALL',tz,status:'active',lastChecked:new Date(now-2*H),sourceUrl:'#'},o);
+  return [
+    mk('StyleHub','Winter collection sale','50% OFF','Fashion',{expiresAt:new Date(now+52*H),description:'On jackets, hoodies & boots.'}),
+    mk('Burger Town','Buy 1 Get 1 Free','BOGO','Food',{city,expiresAt:new Date(now+5*H),description:'Every day 3–6 PM.'}),
+    mk('TechZone','Phones & laptops mega deal','Up to 30%','Electronics',{expiresAt:new Date(now+6*24*H)}),
+    mk('FreshMart','Weekend grocery offer','20% OFF','Grocery',{city,description:'On fruits & vegetables.'}),
+    mk('Glow Beauty','Skincare bundle','35% OFF','Beauty',{expiresAt:new Date(now+30*H)}),
+    mk('OldDeal','This one expired and is hidden','70% OFF','Fashion',{expiresAt:new Date(now-H)}),
+    mk('StaleDeal','Not re-checked for 3 days, hidden','10% OFF','Other',{lastChecked:new Date(now-72*H)})
+  ];
+}
+async function loadDeals(){
+  $('count').textContent='Loading…'; const cc=$('country').value;
+  try{ deals=DF.DEMO?demoDeals(cc):await DF.query('deals',[['country','EQUAL',cc],['status','EQUAL','active']]); }
+  catch(e){ deals=[]; $('count').textContent='Could not load deals: '+e.message; return; }
+  $('updated').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+  render();
+}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function render(){
+  const now=new Date(), city=$('city').value.trim().toLowerCase(), q=$('q').value.trim().toLowerCase();
+  const cName=(countries.find(c=>c.code===$('country').value)||{}).name||'';
+  const list=deals.filter(d=>DF.isVisible(d,now))
+    .filter(d=>!city||d.city==='ALL'||String(d.city).toLowerCase()===city)
+    .filter(d=>cat==='All'||d.category===cat)
+    .filter(d=>!q||[d.brand,d.title,d.description].join(' ').toLowerCase().includes(q))
+    .sort((a,b)=>(a.expiresAt||Infinity)-(b.expiresAt||Infinity));
+  $('count').textContent=`${list.length} live deal${list.length===1?'':'s'} in ${city?$('city').value+', ':''}${cName}`;
+  $('grid').innerHTML=list.length?list.map(d=>`
+    <article class="deal">
+      <div class="pic">${d.image?`<img src="${esc(d.image)}" alt="" loading="lazy" onerror="this.remove()">`:`<b>${esc((d.brand||'?')[0])}</b>`}${d.discount?`<span class="off">${esc(d.discount)}</span>`:''}</div>
+      <div class="body"><span class="brand">${esc(d.brand)}</span><h3>${esc(d.title)}</h3>${d.description?`<p>${esc(d.description)}</p>`:''}
+        <div class="meta">
+          ${d.expiresAt?`<span class="ends">⏳ Ends in ${DF.timeLeft(d.expiresAt,now)} · ${DF.fmtInTz(d.expiresAt,d.tz)}</span>`:`<span class="ok">✅ Checked ${Math.max(1,Math.round((now-d.lastChecked)/3600e3))}h ago — still active</span>`}
+          <span class="loc">📍 ${d.city==='ALL'?'All of '+esc(cName):esc(d.city)}</span>
+        </div></div>
+      ${d.sourceUrl&&d.sourceUrl!=='#'?`<a class="go" href="${esc(d.sourceUrl)}" target="_blank" rel="noopener">View offer ↗</a>`:''}
+    </article>`).join(''):`<div class="empty"><b>🔍</b>No live deals here yet.<br>New offers are added every 6 hours — check back soon.</div>`;
+}
+$('chips').innerHTML=CATS.map(c=>`<button class="chip${c==='All'?' on':''}" data-c="${c}">${c}</button>`).join('');
+$('chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;cat=b.dataset.c;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b));render();};
+$('country').onchange=async()=>{S.set('df-country',$('country').value);await loadCities();loadDeals();};
+$('city').oninput=()=>{S.set('df-city-'+$('country').value,$('city').value.trim());render();};
+$('q').oninput=render;
+$('yr').textContent=new Date().getFullYear();
+$('demo').hidden=!DF.DEMO;
+(async()=>{await loadCountries();await loadCities();await loadDeals();})();
+setInterval(render,60e3); // hide deals the moment they expire
+</script>
+</body>
+</html>

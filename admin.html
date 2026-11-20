@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Admin · Discount Finder</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--red:#ff4d2e;--ink:#16181d;--muted:#6b7280;--bg:#f6f7fb;--line:#e8eaf0;--green:#12a150}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:900px;margin:0 auto;padding:16px}
+  h1{font-size:1.3rem;margin:6px 0 14px;display:flex;justify-content:space-between;align-items:center}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+  label{display:block;font-size:.75rem;font-weight:700;color:var(--muted);margin:8px 0 4px}
+  input,select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;font:inherit;font-size:.95rem;background:#fff}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:600px){.g2{grid-template-columns:1fr}}
+  button{font:inherit;font-weight:700;border:none;border-radius:10px;padding:11px 16px;cursor:pointer;background:var(--ink);color:#fff}
+  button.red{background:var(--red)}button.green{background:var(--green)}button.ghost{background:#eef0f5;color:var(--ink)}
+  .tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+  .tabs button{background:#fff;color:var(--ink);border:1.5px solid var(--line);flex:none}
+  .tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .row{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+  .row:last-child{border:none}
+  .row small{color:var(--muted);display:block;font-size:.8rem}
+  .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .acts button{padding:7px 10px;font-size:.82rem}
+  .msg{padding:10px 12px;border-radius:10px;margin:10px 0;font-weight:600;font-size:.9rem}
+  .msg.ok{background:#dcfce7;color:#14532d}.msg.err{background:#fee2e2;color:#7f1d1d}
+  .hint{color:var(--muted);font-size:.82rem;margin-top:4px}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body><div class="wrap">
+<h1>⚙️ Discount Finder Admin <button class="ghost" id="logout" hidden>Logout</button></h1>
+<div id="msg"></div>
+
+<div class="card" id="login">
+  <div id="demoNote" class="msg err" hidden>Firebase is not connected yet — fill config.js first.</div>
+  <label>Email</label><input id="em" type="email" autocomplete="username">
+  <label>Password</label><input id="pw" type="password" autocomplete="current-password">
+  <br><br><button class="red" id="loginBtn">Login</button>
+</div>
+
+<div id="app" hidden>
+  <div class="tabs">
+    <button data-t="add" class="on">➕ Add deal</button>
+    <button data-t="pending">🕵️ Pending check <span id="pc"></span></button>
+    <button data-t="active">✅ Live deals</button>
+    <button data-t="brands">🏷️ Brands</button>
+  </div>
+
+  <section id="t-add" class="card">
+    <div class="g2">
+      <div><label>Brand</label><input id="a_brand" placeholder="e.g. Nike"></div>
+      <div><label>Discount</label><input id="a_discount" placeholder="e.g. 50% OFF, Buy 1 Get 1"></div>
+    </div>
+    <label>Title</label><input id="a_title" placeholder="e.g. Black Friday sale on shoes">
+    <label>Details (optional)</label><input id="a_desc">
+    <div class="g2">
+      <div><label>Category</label><select id="a_cat"></select></div>
+      <div><label>Country</label><select id="a_country"></select></div>
+    </div>
+    <div class="g2">
+      <div><label>City</label><input id="a_city" list="a_cities" placeholder="ALL = whole country" value="ALL"><datalist id="a_cities"></datalist></div>
+      <div><label>Time zone</label><select id="a_tz"></select></div>
+    </div>
+    <div class="g2">
+      <div><label>Starts (optional, city time)</label><input id="a_start" type="datetime-local"></div>
+      <div><label>Ends (city time) — empty = no end date</label><input id="a_end" type="datetime-local"></div>
+    </div>
+    <p class="hint">No end date → deal must be re-confirmed every 2 days or it hides automatically.</p>
+    <label>Offer link (website / Instagram post)</label><input id="a_url" placeholder="https://">
+    <label>Image link (optional)</label><input id="a_img" placeholder="https://">
+    <br><button class="red" id="saveDeal">Save deal</button>
+  </section>
+
+  <section id="t-pending" class="card" hidden><div id="pendingList">Loading…</div></section>
+  <section id="t-active" class="card" hidden>
+    <label>Country</label><select id="l_country"></select>
+    <div id="activeList"></div>
+  </section>
+  <section id="t-brands" class="card" hidden>
+    <p class="hint">The robot checks these brands every 6 hours for new offers.</p>
+    <div class="g2">
+      <div><label>Brand name</label><input id="b_name"></div>
+      <div><label>Category</label><select id="b_cat"></select></div>
+    </div>
+    <div class="g2">
+      <div><label>Country</label><select id="b_country"></select></div>
+      <div><label>Cities (comma separated, or ALL)</label><input id="b_cities" value="ALL"></div>
+    </div>
+    <div class="g2">
+      <div><label>Offers / sale page URL</label><input id="b_web" placeholder="https://brand.com/sale"></div>
+      <div><label>Instagram username</label><input id="b_ig" placeholder="e.g. nike (without @)"></div>
+    </div>
+    <br><button class="red" id="saveBrand">Add brand</button>
+    <div id="brandList" style="margin-top:12px"></div>
+  </section>
+</div>
+</div>
+
+<script src="config.js"></script>
+<script src="lib.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const CATS=['Fashion','Food','Electronics','Grocery','Beauty','Home','Travel','Other'];
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let countries=[], cityCache={};
+function say(t,ok=true){$('msg').innerHTML=`<div class="msg ${ok?'ok':'err'}">${esc(t)}</div>`;setTimeout(()=>$('msg').innerHTML='',5000);}
+async function cities(cc){ if(cityCache[cc]) return cityCache[cc]; try{const r=await fetch(`data/cities/${cc}.json`);cityCache[cc]=r.ok?await r.json():[];}catch(e){cityCache[cc]=[];} return cityCache[cc]; }
+const ALL_TZ=Intl.supportedValuesOf?Intl.supportedValuesOf('timeZone'):['UTC'];
+
+async function fillTz(){ // time zones used by the chosen country's cities (largest first), then the rest
+  const cc=$('a_country').value, list=await cities(cc), city=$('a_city').value.trim().toLowerCase();
+  const own=[...new Set(list.map(c=>c[1]))], hit=list.find(c=>c[0].toLowerCase()===city);
+  const opts=[...own,...ALL_TZ.filter(t=>!own.includes(t))];
+  $('a_tz').innerHTML=opts.map(t=>`<option>${t}</option>`).join('');
+  $('a_tz').value=hit?hit[1]:(own[0]||'UTC');
+  $('a_cities').innerHTML='<option value="ALL">'+list.slice(0,3000).map(c=>`<option value="${esc(c[0])}">`).join('');
+}
+async function init(){
+  countries=await (await fetch('data/countries.json')).json();
+  const opts=countries.map(c=>`<option value="${c.code}">${c.name}</option>`).join('');
+  ['a_country','b_country','l_country'].forEach(id=>{$(id).innerHTML=opts;$(id).value='KW';});
+  ['a_cat','b_cat'].forEach(id=>$(id).innerHTML=CATS.map(c=>`<option>${c}</option>`).join(''));
+  $('a_country').onchange=()=>{$('a_city').value='ALL';fillTz();};
+  $('a_city').onchange=fillTz; await fillTz();
+}
+function showApp(){ $('login').hidden=true; $('app').hidden=false; $('logout').hidden=false; loadPending(); }
+document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  ['add','pending','active','brands'].forEach(t=>$('t-'+t).hidden=t!==b.dataset.t);
+  ({pending:loadPending,active:loadActive,brands:loadBrands})[b.dataset.t]?.();};
+
+$('loginBtn').onclick=async()=>{ try{ await DF.signIn($('em').value.trim(),$('pw').value); showApp(); }catch(e){ say('Login failed: '+e.message,false);} };
+$('logout').onclick=()=>{DF.signOut();location.reload();};
+
+$('saveDeal').onclick=async()=>{
+  const v=id=>$(id).value.trim(), tz=$('a_tz').value;
+  if(!v('a_brand')||!v('a_title')) return say('Brand and title are required',false);
+  const now=new Date();
+  const d={brand:v('a_brand'),title:v('a_title'),discount:v('a_discount'),description:v('a_desc'),category:$('a_cat').value,
+    country:$('a_country').value,city:v('a_city')||'ALL',tz,
+    startsAt:v('a_start')?DF.zonedToUtc(v('a_start'),tz):null, expiresAt:v('a_end')?DF.zonedToUtc(v('a_end'),tz):null,
+    sourceUrl:v('a_url'),image:v('a_img'),sourceType:'manual',status:'active',lastChecked:now,createdAt:now};
+  if(d.expiresAt&&d.expiresAt<now) return say('End time is already in the past for that city',false);
+  try{ await DF.create('deals',d); say('✅ Deal saved and live'); ['a_brand','a_discount','a_title','a_desc','a_url','a_img','a_start','a_end'].forEach(id=>$(id).value=''); }
+  catch(e){ say('Save failed: '+e.message,false); }
+};
+
+function dealRow(d,acts){
+  const when=d.expiresAt?'Ends '+DF.fmtInTz(d.expiresAt,d.tz)+' ('+d.tz+')':(d.lastChecked?'Last checked '+DF.fmtInTz(d.lastChecked,d.tz):'Never checked');
+  return `<div class="row"><div><b>${esc(d.brand)}</b> — ${esc(d.title)} ${d.discount?'· <b>'+esc(d.discount)+'</b>':''}
+    <small>${esc(d.country)} · ${esc(d.city)} · ${when} · ${esc(d.sourceType||'')}</small>
+    ${d.sourceUrl?`<small><a href="${esc(d.sourceUrl)}" target="_blank" rel="noopener">Open source ↗</a></small>`:''}</div>
+    <div class="acts">${acts(d)}</div></div>`;
+}
+async function loadPending(){
+  $('pendingList').textContent='Loading…';
+  try{
+    const now=new Date();
+    const pend=await DF.query('deals',[['status','EQUAL','pending']]);
+    const act=await DF.query('deals',[['status','EQUAL','active']],1000);
+    const stale=act.filter(d=>!d.expiresAt&&(!d.lastChecked||now-d.lastChecked>DF.NO_DATE_TTL));
+    const all=[...pend,...stale];
+    $('pc').textContent=all.length?`(${all.length})`:'';
+    $('pendingList').innerHTML=all.length?'<p class="hint">Open the source, then tap ✅ if the offer is still running or ❌ if it ended.</p>'+all.map(d=>dealRow(d,d=>
+      `<button class="green" onclick="setStatus('${d.id}','active')">✅ Active</button><button class="red" onclick="setStatus('${d.id}','ended')">❌ Ended</button><button class="ghost" onclick="del('${d.id}')">🗑</button>`)).join(''):'🎉 Nothing to check.';
+  }catch(e){ $('pendingList').textContent='Error: '+e.message; }
+}
+async function setStatus(id,status){ try{ await DF.update('deals',id,status==='active'?{status,lastChecked:new Date()}:{status}); say('Updated'); loadPending(); loadActive(); }catch(e){ say(e.message,false);} }
+async function del(id){ if(!confirm('Delete this deal?'))return; try{ await DF.remove('deals',id); say('Deleted'); loadPending(); loadActive(); }catch(e){ say(e.message,false);} }
+async function loadActive(){
+  $('activeList').textContent='Loading…';
+  try{ const list=(await DF.query('deals',[['country','EQUAL',$('l_country').value],['status','EQUAL','active']])).filter(d=>DF.isVisible(d));
+    $('activeList').innerHTML=list.length?list.map(d=>dealRow(d,d=>`<button class="red" onclick="setStatus('${d.id}','ended')">End</button><button class="ghost" onclick="del('${d.id}')">🗑</button>`)).join(''):'<p class="hint">No live deals in this country.</p>';
+  }catch(e){ $('activeList').textContent='Error: '+e.message; }
+}
+$('l_country').onchange=loadActive;
+
+$('saveBrand').onclick=async()=>{
+  const v=id=>$(id).value.trim();
+  if(!v('b_name')||(!v('b_web')&&!v('b_ig'))) return say('Name + website or Instagram required',false);
+  try{ await DF.create('brands',{name:v('b_name'),category:$('b_cat').value,country:$('b_country').value,
+      cities:v('b_cities').split(',').map(s=>s.trim()).filter(Boolean),offersUrl:v('b_web'),instagram:v('b_ig').replace(/^@/,''),active:true,createdAt:new Date()});
+    say('✅ Brand added'); ['b_name','b_web','b_ig'].forEach(id=>$(id).value=''); loadBrands(); }catch(e){ say(e.message,false); }
+};
+async function loadBrands(){
+  $('brandList').textContent='Loading…';
+  try{ const list=await DF.query('brands',[],1000);
+    $('brandList').innerHTML=list.map(b=>`<div class="row"><div><b>${esc(b.name)}</b><small>${esc(b.country)} · ${esc((b.cities||[]).join(', '))} · ${b.offersUrl?'🌐':''} ${b.instagram?'📸 @'+esc(b.instagram):''}${b.lastRun?' · last run '+DF.fmtInTz(b.lastRun,'UTC')+' UTC':''}</small></div>
+      <div class="acts"><button class="ghost" onclick="delBrand('${b.id}')">🗑</button></div></div>`).join('')||'<p class="hint">No brands yet.</p>';
+  }catch(e){ $('brandList').textContent='Error: '+e.message; }
+}
+async function delBrand(id){ if(!confirm('Delete brand?'))return; await DF.remove('brands',id); loadBrands(); }
+
+init();
+if(DF.DEMO){ $('demoNote').hidden=false; $('loginBtn').disabled=true; }
+else if(DF.authed()) showApp();
+</script>
+</body>
+</html>
