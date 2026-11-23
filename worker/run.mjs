@@ -109,14 +109,23 @@ export async function main({ db, env = process.env, fetchFn = fetch, now = new D
   aiModels = null;
   const stats = { expired: 0, rechecked: 0, hidden: 0, toReview: 0, added: 0, errors: 0 };
   let brands = (await db.query('brands', [], 5000));
-  if (!brands.length) { // first run: load the starter brand list
-    try {
-      const seed = JSON.parse(fs.readFileSync(new URL('../data/brands-seed.json', import.meta.url)));
-      for (const b of seed) await db.createWithId('brands', hash(b.country + b.name).slice(0, 20), { ...b, active: true, createdAt: now });
-      console.log(`== Seeded ${seed.length} starter brands`);
-      brands = await db.query('brands', [], 5000);
-    } catch (e) { console.warn('seed skipped:', e.message); }
-  }
+  // Sync starter brand list: add brands from data/brands-seed.json that were never seeded before.
+  // Seeded ids are remembered in meta/seed, so a brand deleted in admin is not added back.
+  try {
+    const seed = JSON.parse(fs.readFileSync(new URL('../data/brands-seed.json', import.meta.url)));
+    const meta = (await db.query('meta', [], 50)).find(m => m.id === 'seed');
+    const done = new Set(meta?.ids || (meta ? [] : brands.map(b => b.id)));
+    let added = 0;
+    for (const b of seed) {
+      const id = hash(b.country + b.name).slice(0, 20);
+      if (done.has(id)) continue;
+      if (await db.createWithId('brands', id, { ...b, active: true, createdAt: now })) added++;
+      done.add(id);
+    }
+    const ids = [...done];
+    if (meta) await db.update('meta', 'seed', { ids, at: now }); else await db.createWithId('meta', 'seed', { ids, at: now });
+    if (added) { console.log(`== Seeded ${added} new starter brands`); brands = await db.query('brands', [], 5000); }
+  } catch (e) { console.warn('seed skipped:', e.message); }
   brands = brands.filter(b => b.active !== false);
   const brandById = Object.fromEntries(brands.map(b => [b.id, b]));
   const igCache = {};
@@ -152,6 +161,9 @@ export async function main({ db, env = process.env, fetchFn = fetch, now = new D
   }
 
   // 3: discover new offers
+  // least recently scanned first, so with many brands every brand gets its turn across runs
+  const lr = b => (b.lastRun ? new Date(b.lastRun).getTime() : 0) || 0;
+  brands.sort((a, b) => lr(a) - lr(b));
   console.log(`== Scanning ${brands.length} brands`);
   const deadline = Date.now() + 20 * 60e3; // stay well inside the 30-min job limit
   for (const b of brands) {
