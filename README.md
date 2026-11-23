@@ -22,3 +22,9 @@ Live discounts, sales and offers by **country → city**, for every country.
 Visibility rule: a deal shows only if `status == active`, it has started, and either its end time is in the future, or (no end time) it was confirmed in the last 48 hours.
 
 City data © GeoNames, CC BY 4.0.
+
+## Python scraper (main job now)
+`scraper/scrape.py` runs every 6 hours (GitHub Actions → *Fetch deals*):
+- scrapes Instagram + Facebook (no login) and each brand's offers page, saves discount posts as live deals
+- deletes deals whose end time has passed, and deals with no end date that are older than 2 days
+- run on your laptop: `pip install requests cryptography`, set `FIREBASE_SERVICE_ACCOUNT` to the JSON file path, `python scraper/scrape.py`

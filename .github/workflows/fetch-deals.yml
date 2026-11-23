@@ -7,16 +7,16 @@ concurrency: fetch-deals
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-python@v5
         with:
-          node-version: 22
-      - name: Run worker
-        run: node worker/run.mjs
+          python-version: '3.12'
+      - run: pip install requests cryptography
+      - name: Run Python scraper (Instagram, Facebook, websites + cleanup)
+        run: python scraper/scrape.py
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          IG_USER_ID: ${{ secrets.IG_USER_ID }}
-          META_TOKEN: ${{ secrets.META_TOKEN }}
+          MAX_MINUTES: '45'

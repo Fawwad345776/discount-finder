@@ -1,0 +1,327 @@
+"""Discount Finder scraper (simple version).
+
+Every run:
+  1. Cleanup: deletes deals whose end time has passed, and deals with no end date
+     that are older than 2 days (website deals: not seen for 2 days).
+  2. For every brand: scrapes Instagram + Facebook (no login) and the brand's
+     offers page, finds discount posts and saves them as live deals.
+
+Run locally:   pip install requests cryptography
+               set FIREBASE_SERVICE_ACCOUNT=<path to service-account.json or the JSON itself>
+               python scraper/scrape.py
+Optional env:  GEMINI_API_KEY (better titles / end dates), MAX_MINUTES (default 45), ONLY_COUNTRY=PK
+"""
+import base64, hashlib, html, json, os, re, sys, time, random
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+import requests
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+
+ROOT = Path(__file__).resolve().parent.parent
+NOW = datetime.now(timezone.utc)
+TWO_DAYS = timedelta(days=2)
+CATS = ['Fashion', 'Food', 'Electronics', 'Grocery', 'Beauty', 'Home', 'Travel', 'Other']
+UA = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+      '(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36')
+OFFER_RE = re.compile(r'(\d{1,2}\s?%\s?(off|discount)?|\bsale\b|\boffer\b|\bdiscount\b|\bbogo\b|buy\s?1\s?get\s?1|'
+                      r'black\s?friday|clearance|\bpromo\b|\bdeal\b|خصم|تخفيض|تخفيضات|عرض|عروض|تنزيلات|سيل)', re.I)
+PCT_RE = re.compile(r'(up\s?to\s?)?\d{1,2}\s?%(\s?off)?|buy\s?\d\s?get\s?\d|bogo|flat\s?\d+\s?%?\s?off', re.I)
+log = lambda *a: print(*a, flush=True)
+
+
+# ---------------- Firestore (REST, service account) ----------------
+class DB:
+    def __init__(self, sa):
+        self.sa = json.loads(Path(sa).read_text() if not sa.strip().startswith('{') else sa)
+        self.base = f"https://firestore.googleapis.com/v1/projects/{self.sa['project_id']}/databases/(default)/documents"
+        self.token, self.exp, self.s = None, 0, requests.Session()
+
+    def _auth(self):
+        if self.token and time.time() < self.exp - 60:
+            return self.token
+        b64 = lambda o: base64.urlsafe_b64encode(json.dumps(o).encode()).rstrip(b'=').decode()
+        now = int(time.time())
+        unsigned = b64({'alg': 'RS256', 'typ': 'JWT'}) + '.' + b64({
+            'iss': self.sa['client_email'], 'scope': 'https://www.googleapis.com/auth/datastore',
+            'aud': 'https://oauth2.googleapis.com/token', 'iat': now, 'exp': now + 3600})
+        key = serialization.load_pem_private_key(self.sa['private_key'].encode(), password=None)
+        sig = base64.urlsafe_b64encode(key.sign(unsigned.encode(), padding.PKCS1v15(), hashes.SHA256())).rstrip(b'=').decode()
+        r = requests.post('https://oauth2.googleapis.com/token', timeout=30, data={
+            'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer', 'assertion': unsigned + '.' + sig})
+        r.raise_for_status()
+        self.token, self.exp = r.json()['access_token'], time.time() + r.json()['expires_in']
+        return self.token
+
+    def _call(self, method, url, body=None):
+        r = self.s.request(method, url, json=body, timeout=30, headers={'Authorization': 'Bearer ' + self._auth()})
+        if r.status_code == 409:
+            return None
+        if not r.ok:
+            raise RuntimeError(f'Firestore {r.status_code}: {r.text[:200]}')
+        return r.json() if r.text else {}
+
+    def all(self, coll):
+        out, token = [], ''
+        while True:
+            j = self._call('GET', f'{self.base}/{coll}?pageSize=300' + (f'&pageToken={token}' if token else ''))
+            out += [dict(dec({'mapValue': {'fields': d.get('fields', {})}}), id=d['name'].split('/')[-1]) for d in j.get('documents', [])]
+            token = j.get('nextPageToken')
+            if not token:
+                return out
+
+    def create(self, coll, doc_id, data):  # False if it already exists
+        return self._call('POST', f'{self.base}/{coll}?documentId={doc_id}', {'fields': enc(data)['mapValue']['fields']}) is not None
+
+    def update(self, coll, doc_id, data):
+        mask = '&'.join('updateMask.fieldPaths=' + k for k in data)
+        self._call('PATCH', f'{self.base}/{coll}/{doc_id}?{mask}', {'fields': enc(data)['mapValue']['fields']})
+
+    def delete(self, coll, doc_id):
+        self._call('DELETE', f'{self.base}/{coll}/{doc_id}')
+
+
+def enc(v):
+    if v is None: return {'nullValue': None}
+    if isinstance(v, datetime): return {'timestampValue': v.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')}
+    if isinstance(v, bool): return {'booleanValue': v}
+    if isinstance(v, int): return {'integerValue': str(v)}
+    if isinstance(v, float): return {'doubleValue': v}
+    if isinstance(v, (list, tuple)): return {'arrayValue': {'values': [enc(x) for x in v]}}
+    if isinstance(v, dict): return {'mapValue': {'fields': {k: enc(x) for k, x in v.items()}}}
+    return {'stringValue': str(v)}
+
+
+def dec(v):
+    if 'timestampValue' in v: return datetime.fromisoformat(v['timestampValue'].replace('Z', '+00:00'))
+    if 'integerValue' in v: return int(v['integerValue'])
+    for k in ('stringValue', 'doubleValue', 'booleanValue'):
+        if k in v: return v[k]
+    if 'arrayValue' in v: return [dec(x) for x in v['arrayValue'].get('values', [])]
+    if 'mapValue' in v: return {k: dec(x) for k, x in v['mapValue'].get('fields', {}).items()}
+    return None
+
+
+# ---------------- helpers ----------------
+_tz_cache = {}
+def country_tz(cc):
+    if cc not in _tz_cache:
+        try: _tz_cache[cc] = json.loads((ROOT / f'data/cities/{cc}.json').read_text())[0][1]
+        except Exception: _tz_cache[cc] = 'UTC'
+    return _tz_cache[cc]
+
+
+def deal_id(*parts):
+    return hashlib.sha1('|'.join(map(str, parts)).encode()).hexdigest()[:24]
+
+
+def html_to_text(h):
+    h = re.sub(r'(?is)<(script|style|noscript)[^>]*>.*?</\1>', ' ', h)
+    return re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', h))).strip()
+
+
+def find_offers(text, limit=5):
+    """Regex fallback: short sentences that mention a discount."""
+    out, seen = [], set()
+    for s in re.split(r'(?<=[.!?\n])\s+|\s{2,}|•|\|', text):
+        s = s.strip()
+        if 8 <= len(s) <= 160 and OFFER_RE.search(s) and s.lower() not in seen:
+            seen.add(s.lower())
+            m = PCT_RE.search(s)
+            out.append({'title': s[:140], 'discount': m.group(0).upper() if m else 'SALE', 'ends': None})
+        if len(out) >= limit:
+            break
+    return out
+
+
+def ai_extract(text, brand):
+    """Gemini (optional): returns [{'title','discount','description','ends'}]; None if no key / failed."""
+    key = os.environ.get('GEMINI_API_KEY')
+    if not key:
+        return None
+    prompt = (f"Today is {NOW.date()}. From this {brand['name']} ({brand['country']}) text, list CURRENT discounts/sales/offers only. "
+              'Ignore normal prices and menus. JSON: {"deals":[{"title":"short English title","discount":"e.g. 30% OFF",'
+              '"description":"one short line","ends":"YYYY-MM-DD or null"}]}. Empty list if none.\nText:\n' + text[:12000])
+    for model in [os.environ.get('GEMINI_MODEL', 'gemini-3.8-flash'), 'gemini-2.5-flash']:
+        try:
+            r = requests.post(f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}', timeout=60,
+                              json={'contents': [{'parts': [{'text': prompt}]}],
+                                    'generationConfig': {'responseMimeType': 'application/json', 'temperature': 0.1}})
+            if r.ok:
+                return json.loads(r.json()['candidates'][0]['content']['parts'][0]['text']).get('deals', [])
+        except Exception as e:
+            log('   AI error', model, e)
+    return None
+
+
+def extract(text, brand):
+    res = ai_extract(text, brand)
+    return find_offers(text) if res is None else res
+
+
+def parse_end(ends, tz):
+    if not ends or ends == 'null':
+        return None
+    try:
+        from zoneinfo import ZoneInfo
+        d = datetime.fromisoformat(str(ends)[:10])
+        return d.replace(hour=23, minute=59, tzinfo=ZoneInfo(tz)).astimezone(timezone.utc)
+    except Exception:
+        return None
+
+
+# ---------------- scrapers (no login) ----------------
+S = requests.Session()
+S.headers.update({'User-Agent': UA, 'Accept-Language': 'en-US,en;q=0.9'})
+
+
+def scrape_instagram(username):
+    """Public profile, last ~12 posts: [{'id','text','url','image','time'}]"""
+    r = S.get(f'https://i.instagram.com/api/v1/users/web_profile_info/?username={username}', timeout=20,
+              headers={'x-ig-app-id': '936619743392459', 'Referer': 'https://www.instagram.com/'})
+    if r.status_code != 200:
+        raise RuntimeError(f'Instagram blocked ({r.status_code})')
+    edges = r.json()['data']['user']['edge_owner_to_timeline_media']['edges']
+    posts = []
+    for e in edges:
+        n = e['node']
+        cap = (n.get('edge_media_to_caption', {}).get('edges') or [{}])[0].get('node', {}).get('text', '')
+        posts.append({'id': n['id'], 'text': cap, 'url': f"https://www.instagram.com/p/{n['shortcode']}/",
+                      'image': n.get('display_url', ''), 'time': datetime.fromtimestamp(n['taken_at_timestamp'], timezone.utc)})
+    return posts
+
+
+def scrape_facebook(page):
+    """Public page via mbasic (works only while Facebook allows logged-out views)."""
+    r = S.get(f'https://mbasic.facebook.com/{page}', timeout=20, allow_redirects=True)
+    if r.status_code != 200 or 'login' in r.url:
+        raise RuntimeError('Facebook asks for login')
+    posts = []
+    for block in re.findall(r'(?s)<article.*?</article>|<div[^>]+data-ft=.*?</footer>', r.text)[:10]:
+        text = html_to_text(block)
+        link = re.search(r'href="(/story\.php\?[^"]+|/[^"/]+/posts/[^"]+)"', block)
+        url = 'https://www.facebook.com' + html.unescape(link.group(1)) if link else f'https://www.facebook.com/{page}'
+        posts.append({'id': deal_id(page, text[:80]), 'text': text, 'url': url, 'image': '', 'time': None})
+    if not posts:
+        raise RuntimeError('Facebook: no public posts visible')
+    return posts
+
+
+def scrape_website(url):
+    r = S.get(url, timeout=25)
+    r.raise_for_status()
+    img = re.search(r'<meta[^>]+property="og:image"[^>]+content="([^"]+)"', r.text)
+    return html_to_text(r.text), (img.group(1) if img else '')
+
+
+# ---------------- main ----------------
+def save(db, brand, items, source_type, source_url, source_id, image, posted, stats):
+    tz = country_tz(brand['country'])
+    for f in items or []:
+        if not f or not f.get('title'):
+            continue
+        expires = parse_end(f.get('ends'), tz)
+        if expires and expires <= NOW:
+            continue
+        did = deal_id(brand['id'], source_id or source_url, f['title'])
+        deal = {'brand': brand['name'], 'brandId': brand['id'], 'title': str(f['title'])[:140],
+                'discount': f.get('discount') or '', 'description': f.get('description') or '',
+                'category': brand.get('category') if brand.get('category') in CATS else 'Other',
+                'country': brand['country'], 'city': (brand.get('cities') or ['ALL'])[0], 'tz': tz,
+                'startsAt': None, 'expiresAt': expires, 'sourceType': source_type, 'sourceUrl': source_url,
+                'sourceId': source_id, 'image': image or '', 'status': 'active', 'extractor': 'python',
+                'lastChecked': NOW, 'createdAt': posted or NOW}
+        if db.create('deals', did, deal):
+            stats['added'] += 1
+            log(f"   + {brand['name']}: {deal['title'][:70]} ({deal['discount']})")
+        elif source_type == 'website':
+            db.update('deals', did, {'lastChecked': NOW})  # still on the site -> keep it alive
+
+
+def cleanup(db, stats):
+    for d in db.all('deals'):
+        if d.get('sourceType') == 'manual' and not d.get('expiresAt'):
+            continue  # your own deals without end date stay until you delete them
+        exp, seen, made = d.get('expiresAt'), d.get('lastChecked'), d.get('createdAt')
+        old = (exp and exp <= NOW) or (not exp and (
+            (d.get('sourceType') == 'website' and (not seen or NOW - seen > TWO_DAYS)) or
+            (d.get('sourceType') != 'website' and (not made or NOW - made > TWO_DAYS))))
+        if old:
+            db.delete('deals', d['id'])
+            stats['deleted'] += 1
+
+
+def sync_seed(db):
+    """Add brands from data/brands-seed.json that were never added before (deleted ones stay deleted)."""
+    try:
+        seed = json.loads((ROOT / 'data/brands-seed.json').read_text())
+        meta = next((m for m in db.all('meta') if m['id'] == 'seed'), None)
+        done = set(meta.get('ids') or []) if meta else {b['id'] for b in db.all('brands')}
+        added = 0
+        for b in seed:
+            bid = hashlib.sha1((b['country'] + b['name']).encode()).hexdigest()[:20]
+            if bid not in done:
+                added += db.create('brands', bid, dict(b, active=True, createdAt=NOW))
+                done.add(bid)
+        if meta: db.update('meta', 'seed', {'ids': sorted(done), 'at': NOW})
+        else: db.create('meta', 'seed', {'ids': sorted(done), 'at': NOW})
+        if added: log(f'== Added {added} new brands from brands-seed.json')
+    except Exception as e:
+        log('seed skipped:', e)
+
+
+def main():
+    sa = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
+    if not sa:
+        sys.exit('Set FIREBASE_SERVICE_ACCOUNT (path to the JSON file or the JSON text)')
+    db = DB(sa)
+    stats = {'added': 0, 'deleted': 0, 'errors': 0}
+    cleanup(db, stats)
+    log(f"== Deleted {stats['deleted']} old/expired deals")
+
+    sync_seed(db)
+    brands = [b for b in db.all('brands') if b.get('active') is not False]
+    if os.environ.get('ONLY_COUNTRY'):
+        brands = [b for b in brands if b.get('country') == os.environ['ONLY_COUNTRY']]
+    epoch = datetime(2000, 1, 1, tzinfo=timezone.utc)
+    brands.sort(key=lambda b: b.get('lastRun') or epoch)  # least recently scanned first
+    deadline = time.time() + 60 * float(os.environ.get('MAX_MINUTES', 45))
+    log(f'== Scanning {len(brands)} brands')
+
+    for b in brands:
+        if time.time() > deadline:
+            log('== Time up, the rest next run')
+            break
+        log(f"-- {b['country']} {b['name']}")
+        ig, fb, web = b.get('instagram'), b.get('facebook') or b.get('instagram'), b.get('offersUrl')
+        if ig:
+            try:
+                for p in scrape_instagram(ig):
+                    if p['time'] < NOW - TWO_DAYS or not OFFER_RE.search(p['text']):
+                        continue  # only fresh discount posts
+                    save(db, b, extract(p['text'], b), 'instagram', p['url'], p['id'], p['image'], p['time'], stats)
+            except Exception as e:
+                stats['errors'] += 1; log('   IG:', e)
+            time.sleep(random.uniform(3, 6))  # be gentle, avoids blocks
+        if fb:
+            try:
+                for p in scrape_facebook(fb):
+                    if OFFER_RE.search(p['text']):
+                        save(db, b, extract(p['text'], b), 'facebook', p['url'], p['id'], '', None, stats)
+            except Exception as e:
+                stats['errors'] += 1; log('   FB:', e)
+            time.sleep(random.uniform(2, 4))
+        if web:
+            try:
+                text, img = scrape_website(web)
+                save(db, b, extract(text, b), 'website', web, None, img, None, stats)
+            except Exception as e:
+                stats['errors'] += 1; log('   WEB:', e)
+        db.update('brands', b['id'], {'lastRun': NOW})
+
+    log('== Done', json.dumps(stats))
+
+
+if __name__ == '__main__':
+    main()
