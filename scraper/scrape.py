@@ -9,7 +9,7 @@ Every run:
 Run locally:   pip install requests cryptography
                set FIREBASE_SERVICE_ACCOUNT=<path to service-account.json or the JSON itself>
                python scraper/scrape.py
-Optional env:  GEMINI_API_KEY (better titles / end dates), MAX_MINUTES (default 45), ONLY_COUNTRY=PK
+Optional env:  IG_USER_ID + META_TOKEN (official Instagram API, works from any server), GEMINI_API_KEY (better titles / end dates), MAX_MINUTES (default 45), ONLY_COUNTRY=PK
 """
 import base64, hashlib, html, json, os, re, sys, time, random
 from datetime import datetime, timedelta, timezone
@@ -213,7 +213,36 @@ S = requests.Session()
 S.headers.update({'User-Agent': UA, 'Accept-Language': 'en-US,en;q=0.9'})
 
 
+GRAPH = 'https://graph.facebook.com/v25.0'
+
+
+class IGBlocked(RuntimeError):
+    pass
+
+
 def scrape_instagram(username):
+    """Official Instagram API (Business Discovery) when IG_USER_ID + META_TOKEN are set, else public no-login scrape."""
+    uid, token = os.environ.get('IG_USER_ID'), os.environ.get('META_TOKEN')
+    if not (uid and token):
+        return scrape_instagram_public(username)
+    fields = f'business_discovery.username({username}){{media.limit(12){{id,caption,permalink,media_url,thumbnail_url,timestamp}}}}'
+    r = requests.get(f'{GRAPH}/{uid}', params={'fields': fields, 'access_token': token}, timeout=30)
+    j = r.json() if r.text else {}
+    if 'error' in j:
+        err = j['error']
+        msg = f"Instagram API: {err.get('message', '')[:120]} (code {err.get('code')})"
+        if err.get('code') in (4, 17, 32, 190, 613) or err.get('type') == 'OAuthException' and err.get('code') == 190:
+            raise IGBlocked(msg)  # rate limit or bad/expired token -> stop for this run
+        raise RuntimeError(msg)   # e.g. that brand is not a business account / wrong username
+    out = []
+    for m in j.get('business_discovery', {}).get('media', {}).get('data', []):
+        out.append({'id': m['id'], 'text': m.get('caption', ''), 'url': m.get('permalink', ''),
+                    'image': m.get('media_url') or m.get('thumbnail_url') or '',
+                    'time': datetime.fromisoformat(m['timestamp'].replace('+0000', '+00:00'))})
+    return out
+
+
+def scrape_instagram_public(username):
     """Public profile, last ~12 posts: [{'id','text','url','image','time'}]"""
     r = S.get(f'https://i.instagram.com/api/v1/users/web_profile_info/?username={username}', timeout=20,
               headers={'x-ig-app-id': '936619743392459', 'Referer': 'https://www.instagram.com/'})
@@ -370,6 +399,8 @@ def main():
             break
         log(f"-- {b['country']} {b['name']}")
         ig, fb = b.get('instagram'), b.get('facebook') or b.get('instagram')
+        if os.environ.get('SKIP_FACEBOOK') == '1':
+            fb = None
         if ig and blocked['IG'] < 5:
             try:
                 for p in scrape_instagram(ig):
@@ -377,10 +408,14 @@ def main():
                         continue  # only fresh discount posts
                     save(db, b, extract(p['text'], b), 'instagram', p['url'], p['id'], p['image'], p['time'], stats)
                 blocked['IG'] = 0
+            except IGBlocked as e:
+                stats['errors'] += 1; blocked['IG'] = 5; log('   IG:', e); log('== Instagram API limit/token problem, skipping Instagram for this run')
             except Exception as e:
-                stats['errors'] += 1; blocked['IG'] += 1; log('   IG:', e)
+                stats['errors'] += 1; log('   IG:', e)
+                if not (os.environ.get('IG_USER_ID') and os.environ.get('META_TOKEN')):
+                    blocked['IG'] += 1  # no-login scraping: count blocks
                 if blocked['IG'] == 5: log('== Instagram is blocking this server, skipping it for this run')
-            time.sleep(random.uniform(3, 6))  # be gentle, avoids blocks
+            time.sleep(1 if os.environ.get('META_TOKEN') else random.uniform(3, 6))  # be gentle, avoids blocks
         if fb and blocked['FB'] < 5:
             try:
                 for p in scrape_facebook(fb):
