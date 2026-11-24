@@ -180,6 +180,36 @@
   ]
  },
  {
+  "country": "AT",
+  "name": "MediaMarkt Austria",
+  "category": "Electronics",
+  "offersUrl": "https://www.mediamarkt.at/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "AT",
+  "name": "Lieferando Austria",
+  "category": "Food",
+  "offersUrl": "https://www.lieferando.at/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "AT",
+  "name": "BILLA",
+  "category": "Grocery",
+  "offersUrl": "https://www.billa.at/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
   "country": "AU",
   "name": "Chemist Warehouse",
   "category": "Beauty",
@@ -290,6 +320,26 @@
   ]
  },
  {
+  "country": "AZ",
+  "name": "Wolt Azerbaijan",
+  "category": "Food",
+  "offersUrl": "https://wolt.com/az/aze",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "AZ",
+  "name": "Bravo",
+  "category": "Grocery",
+  "offersUrl": "https://www.bravo.az/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
   "country": "BD",
   "name": "Star Tech",
   "category": "Electronics",
@@ -370,6 +420,36 @@
   ]
  },
  {
+  "country": "BE",
+  "name": "MediaMarkt Belgium",
+  "category": "Electronics",
+  "offersUrl": "https://www.mediamarkt.be/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "BE",
+  "name": "Takeaway.com Belgium",
+  "category": "Food",
+  "offersUrl": "https://www.takeaway.com/be/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "BE",
+  "name": "Colruyt",
+  "category": "Grocery",
+  "offersUrl": "https://www.colruyt.be/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
   "country": "BH",
   "name": "Sharaf DG Bahrain",
   "category": "Electronics",
@@ -415,6 +495,16 @@
   "category": "Grocery",
   "offersUrl": "https://www.luluhypermarket.com/en-bh/",
   "instagram": "luluhypermarketbahrain",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "BO",
+  "name": "PedidosYa Bolivia",
+  "category": "Food",
+  "offersUrl": "https://www.pedidosya.com.bo/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -580,6 +670,56 @@
   ]
  },
  {
+  "country": "CH",
+  "name": "Digitec",
+  "category": "Electronics",
+  "offersUrl": "https://www.digitec.ch/",
+  "instagram": "digitec",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "CH",
+  "name": "Coop",
+  "category": "Grocery",
+  "offersUrl": "https://www.coop.ch/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "CH",
+  "name": "Migros Switzerland",
+  "category": "Grocery",
+  "offersUrl": "https://www.migros.ch/",
+  "instagram": "migros",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "CI",
+  "name": "Glovo Côte d'Ivoire",
+  "category": "Food",
+  "offersUrl": "https://glovoapp.com/ci/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "CI",
+  "name": "Jumia Côte d'Ivoire",
+  "category": "Other",
+  "offersUrl": "https://www.jumia.ci/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
   "country": "CL",
   "name": "Falabella Chile",
   "category": "Fashion",
@@ -605,6 +745,26 @@
   "category": "Grocery",
   "offersUrl": "https://www.lider.cl/",
   "instagram": "lider_cl",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "CM",
+  "name": "Glovo Cameroon",
+  "category": "Food",
+  "offersUrl": "https://glovoapp.com/cm/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "CM",
+  "name": "Jumia Cameroon",
+  "category": "Other",
+  "offersUrl": "https://www.jumia.cm/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -665,6 +825,56 @@
   "category": "Grocery",
   "offersUrl": "https://www.exito.com/",
   "instagram": "almacenes_exito",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "CR",
+  "name": "PedidosYa Costa Rica",
+  "category": "Food",
+  "offersUrl": "https://www.pedidosya.cr/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "CR",
+  "name": "Walmart Costa Rica",
+  "category": "Grocery",
+  "offersUrl": "https://www.walmart.co.cr/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "CZ",
+  "name": "Alza",
+  "category": "Electronics",
+  "offersUrl": "https://www.alza.cz/",
+  "instagram": "alza.cz",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "CZ",
+  "name": "Wolt Czechia",
+  "category": "Food",
+  "offersUrl": "https://wolt.com/cs/cze",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "CZ",
+  "name": "Rohlik",
+  "category": "Grocery",
+  "offersUrl": "https://www.rohlik.cz/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -745,6 +955,96 @@
   "category": "Other",
   "offersUrl": "https://www.amazon.de/deals",
   "instagram": "amazonde",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "DK",
+  "name": "Elgiganten Denmark",
+  "category": "Electronics",
+  "offersUrl": "https://www.elgiganten.dk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "DK",
+  "name": "Wolt Denmark",
+  "category": "Food",
+  "offersUrl": "https://wolt.com/da/dnk",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "DK",
+  "name": "Netto Denmark",
+  "category": "Grocery",
+  "offersUrl": "https://netto.dk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "DO",
+  "name": "PedidosYa Dominican Republic",
+  "category": "Food",
+  "offersUrl": "https://www.pedidosya.com.do/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "DO",
+  "name": "Sirena",
+  "category": "Grocery",
+  "offersUrl": "https://www.sirena.do/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "DZ",
+  "name": "Yassir",
+  "category": "Food",
+  "offersUrl": "https://yassir.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "DZ",
+  "name": "Jumia Algeria",
+  "category": "Other",
+  "offersUrl": "https://www.jumia.dz/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "EC",
+  "name": "PedidosYa Ecuador",
+  "category": "Food",
+  "offersUrl": "https://www.pedidosya.com.ec/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "EC",
+  "name": "Supermaxi",
+  "category": "Grocery",
+  "offersUrl": "https://www.supermaxi.com/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -865,6 +1165,46 @@
   "category": "Other",
   "offersUrl": "https://www.amazon.es/ofertas",
   "instagram": "amazon.es",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "ET",
+  "name": "Shoa Shopping",
+  "category": "Grocery",
+  "offersUrl": "https://shoa.com.et/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "FI",
+  "name": "Verkkokauppa.com",
+  "category": "Electronics",
+  "offersUrl": "https://www.verkkokauppa.com/",
+  "instagram": "verkkokauppacom",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "FI",
+  "name": "Wolt Finland",
+  "category": "Food",
+  "offersUrl": "https://wolt.com/fi/fin",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "FI",
+  "name": "K-Ruoka",
+  "category": "Grocery",
+  "offersUrl": "https://www.k-ruoka.fi/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -1110,6 +1450,26 @@
   ]
  },
  {
+  "country": "GE",
+  "name": "Glovo Georgia",
+  "category": "Food",
+  "offersUrl": "https://glovoapp.com/ge/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "GE",
+  "name": "Wolt Georgia",
+  "category": "Food",
+  "offersUrl": "https://wolt.com/ka/geo",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
   "country": "GH",
   "name": "KFC Ghana",
   "category": "Food",
@@ -1135,6 +1495,116 @@
   "category": "Other",
   "offersUrl": "https://www.jumia.com.gh/",
   "instagram": "jumiaghana",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "GR",
+  "name": "Public",
+  "category": "Electronics",
+  "offersUrl": "https://www.public.gr/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "GR",
+  "name": "efood",
+  "category": "Food",
+  "offersUrl": "https://www.e-food.gr/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "GR",
+  "name": "Skroutz",
+  "category": "Other",
+  "offersUrl": "https://www.skroutz.gr/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "GT",
+  "name": "PedidosYa Guatemala",
+  "category": "Food",
+  "offersUrl": "https://www.pedidosya.com.gt/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "GT",
+  "name": "Pollo Campero",
+  "category": "Food",
+  "offersUrl": "https://campero.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "HK",
+  "name": "Fortress",
+  "category": "Electronics",
+  "offersUrl": "https://www.fortress.com.hk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "HK",
+  "name": "foodpanda Hong Kong",
+  "category": "Food",
+  "offersUrl": "https://www.foodpanda.hk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "HK",
+  "name": "HKTVmall",
+  "category": "Other",
+  "offersUrl": "https://www.hktvmall.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "HU",
+  "name": "Wolt Hungary",
+  "category": "Food",
+  "offersUrl": "https://wolt.com/hu/hun",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "HU",
+  "name": "Tesco Hungary",
+  "category": "Grocery",
+  "offersUrl": "https://bevasarlas.tesco.hu/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "HU",
+  "name": "eMAG Hungary",
+  "category": "Other",
+  "offersUrl": "https://www.emag.hu/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -1235,6 +1705,36 @@
   "category": "Grocery",
   "offersUrl": "https://www.dunnesstores.com/",
   "instagram": "dunnesstores",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "IL",
+  "name": "KSP",
+  "category": "Electronics",
+  "offersUrl": "https://ksp.co.il/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "IL",
+  "name": "Wolt Israel",
+  "category": "Food",
+  "offersUrl": "https://wolt.com/he/isr",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "IL",
+  "name": "Shufersal",
+  "category": "Grocery",
+  "offersUrl": "https://www.shufersal.co.il/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -1660,6 +2160,16 @@
   ]
  },
  {
+  "country": "KH",
+  "name": "foodpanda Cambodia",
+  "category": "Food",
+  "offersUrl": "https://www.foodpanda.com.kh/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
   "country": "KR",
   "name": "Olive Young",
   "category": "Beauty",
@@ -1820,6 +2330,36 @@
   ]
  },
  {
+  "country": "KZ",
+  "name": "Technodom",
+  "category": "Electronics",
+  "offersUrl": "https://www.technodom.kz/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KZ",
+  "name": "Glovo Kazakhstan",
+  "category": "Food",
+  "offersUrl": "https://glovoapp.com/kz/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KZ",
+  "name": "Kaspi",
+  "category": "Other",
+  "offersUrl": "https://kaspi.kz/shop/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
   "country": "LB",
   "name": "Toters",
   "category": "Food",
@@ -1915,6 +2455,26 @@
   "category": "Other",
   "offersUrl": "https://www.jumia.ma/",
   "instagram": "jumiamaroc",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "MM",
+  "name": "foodpanda Myanmar",
+  "category": "Food",
+  "offersUrl": "https://www.foodpanda.com.mm/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "MV",
+  "name": "Agora",
+  "category": "Grocery",
+  "offersUrl": "https://agoramv.com/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -2170,6 +2730,36 @@
   ]
  },
  {
+  "country": "NO",
+  "name": "Elkjøp",
+  "category": "Electronics",
+  "offersUrl": "https://www.elkjop.no/",
+  "instagram": "elkjop",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "NO",
+  "name": "Foodora Norway",
+  "category": "Food",
+  "offersUrl": "https://www.foodora.no/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "NO",
+  "name": "Rema 1000",
+  "category": "Grocery",
+  "offersUrl": "https://www.rema.no/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
   "country": "NP",
   "name": "Foodmandu",
   "category": "Food",
@@ -2275,6 +2865,26 @@
   "category": "Grocery",
   "offersUrl": "https://www.luluhypermarket.com/en-om/",
   "instagram": "luluhypermarketoman",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PA",
+  "name": "PedidosYa Panama",
+  "category": "Food",
+  "offersUrl": "https://www.pedidosya.com.pa/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PA",
+  "name": "Super 99",
+  "category": "Grocery",
+  "offersUrl": "https://www.super99.com/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -2630,6 +3240,86 @@
   ]
  },
  {
+  "country": "PL",
+  "name": "Media Expert",
+  "category": "Electronics",
+  "offersUrl": "https://www.mediaexpert.pl/",
+  "instagram": "mediaexpert.pl",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PL",
+  "name": "Pyszne.pl",
+  "category": "Food",
+  "offersUrl": "https://www.pyszne.pl/",
+  "instagram": "pysznepl",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PL",
+  "name": "Biedronka",
+  "category": "Grocery",
+  "offersUrl": "https://www.biedronka.pl/pl/gazetki",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PL",
+  "name": "Allegro",
+  "category": "Other",
+  "offersUrl": "https://allegro.pl/",
+  "instagram": "allegro.pl",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PT",
+  "name": "Worten",
+  "category": "Electronics",
+  "offersUrl": "https://www.worten.pt/",
+  "instagram": "worten",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PT",
+  "name": "Glovo Portugal",
+  "category": "Food",
+  "offersUrl": "https://glovoapp.com/pt/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PT",
+  "name": "Continente",
+  "category": "Grocery",
+  "offersUrl": "https://www.continente.pt/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PY",
+  "name": "PedidosYa Paraguay",
+  "category": "Food",
+  "offersUrl": "https://www.pedidosya.com.py/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
   "country": "QA",
   "name": "Jarir Qatar",
   "category": "Electronics",
@@ -2705,6 +3395,36 @@
   "category": "Grocery",
   "offersUrl": "https://www.luluhypermarket.com/en-qa/",
   "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "RO",
+  "name": "Glovo Romania",
+  "category": "Food",
+  "offersUrl": "https://glovoapp.com/ro/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "RO",
+  "name": "Kaufland Romania",
+  "category": "Grocery",
+  "offersUrl": "https://www.kaufland.ro/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "RO",
+  "name": "eMAG",
+  "category": "Other",
+  "offersUrl": "https://www.emag.ro/",
+  "instagram": "emag.ro",
   "cities": [
    "ALL"
   ]
@@ -2870,6 +3590,46 @@
   ]
  },
  {
+  "country": "SE",
+  "name": "Elgiganten",
+  "category": "Electronics",
+  "offersUrl": "https://www.elgiganten.se/",
+  "instagram": "elgiganten",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "SE",
+  "name": "H&M Sweden",
+  "category": "Fashion",
+  "offersUrl": "https://www2.hm.com/sv_se/rea.html",
+  "instagram": "hm",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "SE",
+  "name": "Foodora Sweden",
+  "category": "Food",
+  "offersUrl": "https://www.foodora.se/",
+  "instagram": "foodora_se",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "SE",
+  "name": "ICA",
+  "category": "Grocery",
+  "offersUrl": "https://www.ica.se/erbjudanden/",
+  "instagram": "icasverige",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
   "country": "SG",
   "name": "Watsons Singapore",
   "category": "Beauty",
@@ -2940,6 +3700,16 @@
   ]
  },
  {
+  "country": "SN",
+  "name": "Auchan Senegal",
+  "category": "Grocery",
+  "offersUrl": "https://www.auchan.sn/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
   "country": "TH",
   "name": "GrabFood Thailand",
   "category": "Food",
@@ -2975,6 +3745,36 @@
   "category": "Other",
   "offersUrl": "https://shopee.co.th/",
   "instagram": "shopee_th",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TN",
+  "name": "Glovo Tunisia",
+  "category": "Food",
+  "offersUrl": "https://glovoapp.com/tn/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TN",
+  "name": "Carrefour Tunisia",
+  "category": "Grocery",
+  "offersUrl": "https://www.carrefour.tn/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TN",
+  "name": "Jumia Tunisia",
+  "category": "Other",
+  "offersUrl": "https://www.jumia.com.tn/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -3045,6 +3845,106 @@
   "category": "Other",
   "offersUrl": "https://www.trendyol.com/",
   "instagram": "trendyol",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TW",
+  "name": "PChome",
+  "category": "Electronics",
+  "offersUrl": "https://24h.pchome.com.tw/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TW",
+  "name": "foodpanda Taiwan",
+  "category": "Food",
+  "offersUrl": "https://www.foodpanda.com.tw/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TW",
+  "name": "momo",
+  "category": "Other",
+  "offersUrl": "https://www.momoshop.com.tw/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TZ",
+  "name": "KFC Tanzania",
+  "category": "Food",
+  "offersUrl": "https://kfc.co.tz/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TZ",
+  "name": "Jumia Tanzania",
+  "category": "Other",
+  "offersUrl": "https://www.jumia.co.tz/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "UA",
+  "name": "Glovo Ukraine",
+  "category": "Food",
+  "offersUrl": "https://glovoapp.com/ua/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "UA",
+  "name": "Silpo",
+  "category": "Grocery",
+  "offersUrl": "https://silpo.ua/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "UA",
+  "name": "Rozetka",
+  "category": "Other",
+  "offersUrl": "https://rozetka.com.ua/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "UG",
+  "name": "Glovo Uganda",
+  "category": "Food",
+  "offersUrl": "https://glovoapp.com/ug/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "UG",
+  "name": "Jumia Uganda",
+  "category": "Other",
+  "offersUrl": "https://www.jumia.ug/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -3245,6 +4145,66 @@
   "category": "Travel",
   "offersUrl": "https://www.expedia.com/deals",
   "instagram": "expedia",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "UY",
+  "name": "PedidosYa Uruguay",
+  "category": "Food",
+  "offersUrl": "https://www.pedidosya.com.uy/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "UY",
+  "name": "Tienda Inglesa",
+  "category": "Grocery",
+  "offersUrl": "https://www.tiendainglesa.com.uy/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "UZ",
+  "name": "Express24",
+  "category": "Food",
+  "offersUrl": "https://express24.uz/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "UZ",
+  "name": "Korzinka",
+  "category": "Grocery",
+  "offersUrl": "https://korzinka.uz/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "UZ",
+  "name": "Uzum Market",
+  "category": "Other",
+  "offersUrl": "https://uzum.uz/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "VE",
+  "name": "PedidosYa Venezuela",
+  "category": "Food",
+  "offersUrl": "https://www.pedidosya.com.ve/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]

@@ -351,35 +351,50 @@ def main():
     deadline = time.time() + 60 * float(os.environ.get('MAX_MINUTES', 45))
     log(f'== Scanning {len(brands)} brands')
 
+    # websites: fetch 10 at a time (much faster than one by one)
+    from concurrent.futures import ThreadPoolExecutor
+    def fetch(b):
+        try: return b['id'], scrape_website(b['offersUrl']), None
+        except Exception as e: return b['id'], None, e
+    with ThreadPoolExecutor(10) as pool:
+        pages = {i: (r, e) for i, r, e in pool.map(fetch, [b for b in brands if b.get('offersUrl')])}
+    log(f'== Fetched {sum(1 for r, e in pages.values() if r)} of {len(pages)} websites')
+
+    blocked = {'IG': 0, 'FB': 0}  # after 5 blocks in a row we stop trying that site for this run (it is blocking us)
     for b in brands:
         if time.time() > deadline:
             log('== Time up, the rest next run')
             break
         log(f"-- {b['country']} {b['name']}")
-        ig, fb, web = b.get('instagram'), b.get('facebook') or b.get('instagram'), b.get('offersUrl')
-        if ig:
+        ig, fb = b.get('instagram'), b.get('facebook') or b.get('instagram')
+        if ig and blocked['IG'] < 5:
             try:
                 for p in scrape_instagram(ig):
                     if p['time'] < NOW - TWO_DAYS or not OFFER_RE.search(p['text']):
                         continue  # only fresh discount posts
                     save(db, b, extract(p['text'], b), 'instagram', p['url'], p['id'], p['image'], p['time'], stats)
+                blocked['IG'] = 0
             except Exception as e:
-                stats['errors'] += 1; log('   IG:', e)
+                stats['errors'] += 1; blocked['IG'] += 1; log('   IG:', e)
+                if blocked['IG'] == 5: log('== Instagram is blocking this server, skipping it for this run')
             time.sleep(random.uniform(3, 6))  # be gentle, avoids blocks
-        if fb:
+        if fb and blocked['FB'] < 5:
             try:
                 for p in scrape_facebook(fb):
                     if OFFER_RE.search(p['text']):
                         save(db, b, extract(p['text'], b), 'facebook', p['url'], p['id'], '', None, stats)
+                blocked['FB'] = 0
             except Exception as e:
-                stats['errors'] += 1; log('   FB:', e)
+                stats['errors'] += 1; blocked['FB'] += 1; log('   FB:', e)
+                if blocked['FB'] == 5: log('== Facebook is blocking this server, skipping it for this run')
             time.sleep(random.uniform(2, 4))
-        if web:
-            try:
-                text, img = scrape_website(web)
-                save(db, b, extract(text, b), 'website', web, None, img, None, stats)
-            except Exception as e:
-                stats['errors'] += 1; log('   WEB:', e)
+        if b['id'] in pages:
+            res, err = pages[b['id']]
+            if res:
+                try: save(db, b, extract(res[0], b), 'website', b['offersUrl'], None, res[1], None, stats)
+                except Exception as e: stats['errors'] += 1; log('   SAVE:', e)
+            else:
+                stats['errors'] += 1; log('   WEB:', err)
         db.update('brands', b['id'], {'lastRun': NOW})
 
     log('== Done', json.dumps(stats))
