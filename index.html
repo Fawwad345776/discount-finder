@@ -110,9 +110,21 @@ function demoDeals(cc){
     mk('StaleDeal','Not re-checked for 3 days, hidden','10% OFF','Other',{lastChecked:new Date(now-72*H)})
   ];
 }
+// Deals come from a file the robot updates every 6 hours (no Firebase reads = unlimited visitors).
+// Only deals you add by hand in admin are read from Firebase, so they show instantly.
+const DATES=['startsAt','expiresAt','lastChecked'];
+async function liveDeals(cc){
+  const hour=Math.floor(Date.now()/36e5);
+  const fileP=fetch(`data/live/${cc}.json?h=${hour}`).then(r=>r.ok?r.json():[]).catch(()=>[]);
+  const manualP=DF.query('deals',[['country','EQUAL',cc],['sourceType','EQUAL','manual']],200).catch(()=>[]);
+  const [file,manual]=await Promise.all([fileP,manualP]);
+  file.forEach(d=>DATES.forEach(k=>{ if(d[k]) d[k]=new Date(d[k]); }));
+  const seen=new Set(manual.map(d=>d.id));
+  return [...manual,...file.filter(d=>!seen.has(d.id))];
+}
 async function loadDeals(){
   $('count').textContent='Loading…'; const cc=$('country').value;
-  try{ deals=DF.DEMO?demoDeals(cc):await DF.query('deals',[['country','EQUAL',cc],['status','EQUAL','active']]); }
+  try{ deals=DF.DEMO?demoDeals(cc):await liveDeals(cc); }
   catch(e){ deals=[]; $('count').textContent='Could not load deals: '+e.message; return; }
   $('updated').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
   render();

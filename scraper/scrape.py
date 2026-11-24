@@ -352,6 +352,40 @@ def sync_seed(db):
         log('seed skipped:', e)
 
 
+LIVE_FIELDS = ['brand', 'title', 'discount', 'description', 'category', 'country', 'city', 'tz', 'startsAt', 'expiresAt',
+               'sourceType', 'sourceUrl', 'image', 'status', 'lastChecked']
+
+
+def is_visible(d):
+    if d.get('status') != 'active': return False
+    if d.get('startsAt') and d['startsAt'] > NOW: return False
+    if d.get('expiresAt'): return d['expiresAt'] > NOW
+    return bool(d.get('lastChecked')) and NOW - d['lastChecked'] <= TWO_DAYS
+
+
+def export_live(db):
+    """Writes data/live/<CC>.json (live deals per country) + index.json, so the website reads files, not Firebase."""
+    out = ROOT / 'data' / 'live'
+    out.mkdir(parents=True, exist_ok=True)
+    by = {}
+    for d in db.all('deals'):
+        if d.get('sourceType') == 'manual' or not is_visible(d):
+            continue  # manual deals are read live from Firebase by the site (so they show instantly)
+        row = {'id': d['id']}
+        for k in LIVE_FIELDS:
+            v = d.get(k)
+            row[k] = v.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z') if isinstance(v, datetime) else v
+        by.setdefault(d.get('country') or 'XX', []).append(row)
+    for f in out.glob('*.json'):
+        if f.stem != 'index' and f.stem not in by:
+            f.unlink()
+    for cc, rows in by.items():
+        (out / f'{cc}.json').write_text(json.dumps(rows, ensure_ascii=False, separators=(',', ':')))
+    (out / 'index.json').write_text(json.dumps({'updatedAt': NOW.isoformat().replace('+00:00', 'Z'),
+                                                'counts': {cc: len(r) for cc, r in sorted(by.items())}}, indent=1))
+    log(f'== Exported {sum(map(len, by.values()))} live deals for {len(by)} countries to data/live/')
+
+
 def main():
     sa = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
     if not sa and (Path(__file__).parent / 'service-account.json').exists():
@@ -435,6 +469,7 @@ def main():
                 stats['errors'] += 1; log('   WEB:', err)
         db.update('brands', b['id'], {'lastRun': NOW})
 
+    export_live(db)
     log('== Done', json.dumps(stats))
 
 

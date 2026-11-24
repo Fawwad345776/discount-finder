@@ -208,13 +208,13 @@ const flag=cc=>cc.replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));
 async function loadCountries(){
   $('countryStats').textContent='Loading…';
   try{
-    const [deals,seed]=await Promise.all([DF.query('deals',[],10000),fetch('data/brands-seed.json').then(r=>r.json()).catch(()=>[])]);
-    const live={},brands={},now=new Date();
-    deals.forEach(d=>{ if(DF.isVisible(d,now)) live[d.country]=(live[d.country]||0)+1; });
+    const [idx,seed]=await Promise.all([fetch('data/live/index.json?t='+Date.now()).then(r=>r.ok?r.json():{counts:{}}).catch(()=>({counts:{}})),fetch('data/brands-seed.json').then(r=>r.json()).catch(()=>[])]);
+    const live={...(idx.counts||{})},brands={};
     seed.forEach(b=>brands[b.country]=(brands[b.country]||0)+1);
     const total=Object.values(live).reduce((a,b)=>a+b,0), withDeals=Object.keys(live).length;
     const list=countries.map(c=>({...c,n:live[c.code]||0,b:brands[c.code]||0})).sort((a,b)=>b.n-a.n||b.b-a.b||a.name.localeCompare(b.name));
-    $('countryStats').innerHTML=`<p><b>${total}</b> live deals in <b>${withDeals}</b> countries</p>`+
+    const upd=idx.updatedAt?new Date(idx.updatedAt).toLocaleString():'not yet';
+    $('countryStats').innerHTML=`<p><b>${total}</b> live deals in <b>${withDeals}</b> countries <small style="display:inline">(robot run: ${upd}; hand-added deals not counted)</small></p>`+
       list.map(c=>`<div class="row"><div>${flag(c.code)} <b>${esc(c.name)}</b><small>${c.b} brands</small></div><div><b style="font-size:1.1rem;color:${c.n?'var(--green)':'var(--muted)'}">${c.n}</b> <small style="display:inline">deals</small></div></div>`).join('');
   }catch(e){ $('countryStats').textContent='Error: '+e.message; }
 }
