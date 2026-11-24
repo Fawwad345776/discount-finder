@@ -1,0 +1,3 @@
+scraper/service-account.json
+*.json.key
+__pycache__/

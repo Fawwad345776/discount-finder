@@ -49,6 +49,7 @@
     <button data-t="pending">🕵️ Pending check <span id="pc"></span></button>
     <button data-t="active">✅ Live deals</button>
     <button data-t="brands">🏷️ Brands</button>
+    <button data-t="countries">🌍 Countries</button>
   </div>
 
   <section id="t-add" class="card">
@@ -80,6 +81,10 @@
   <section id="t-active" class="card" hidden>
     <label>Country</label><select id="l_country"></select>
     <div id="activeList"></div>
+  </section>
+  <section id="t-countries" class="card" hidden>
+    <p class="hint">Live deals in every country right now (brands = how many brands the robot checks there).</p>
+    <div id="countryStats">Loading…</div>
   </section>
   <section id="t-brands" class="card" hidden>
     <p class="hint">The robot checks these brands every 6 hours for new offers.</p>
@@ -131,8 +136,8 @@ async function init(){
 function showApp(){ $('login').hidden=true; $('app').hidden=false; $('logout').hidden=false; loadPending(); }
 document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
-  ['add','pending','active','brands'].forEach(t=>$('t-'+t).hidden=t!==b.dataset.t);
-  ({pending:loadPending,active:loadActive,brands:loadBrands})[b.dataset.t]?.();};
+  ['add','pending','active','brands','countries'].forEach(t=>$('t-'+t).hidden=t!==b.dataset.t);
+  ({pending:loadPending,active:loadActive,brands:loadBrands,countries:loadCountries})[b.dataset.t]?.();};
 
 // Simple admin password (only its SHA-256 is stored here, not the password itself)
 const ADMIN_HASH='cb92b34505077e5f84e74c44435093eba4ea77e9a5b8f2b82b71f41a79976a80';
@@ -198,6 +203,20 @@ async function loadBrands(){
     $('brandList').innerHTML=list.map(b=>`<div class="row"><div><b>${esc(b.name)}</b><small>${esc(b.country)} · ${esc((b.cities||[]).join(', '))} · ${b.offersUrl?'🌐':''} ${b.instagram?'📸 @'+esc(b.instagram):''}${b.lastRun?' · last run '+DF.fmtInTz(b.lastRun,'UTC')+' UTC':''}</small></div>
       <div class="acts"><button class="ghost" onclick="delBrand('${b.id}')">🗑</button></div></div>`).join('')||'<p class="hint">No brands yet.</p>';
   }catch(e){ $('brandList').textContent='Error: '+e.message; }
+}
+const flag=cc=>cc.replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));
+async function loadCountries(){
+  $('countryStats').textContent='Loading…';
+  try{
+    const [deals,seed]=await Promise.all([DF.query('deals',[],10000),fetch('data/brands-seed.json').then(r=>r.json()).catch(()=>[])]);
+    const live={},brands={},now=new Date();
+    deals.forEach(d=>{ if(DF.isVisible(d,now)) live[d.country]=(live[d.country]||0)+1; });
+    seed.forEach(b=>brands[b.country]=(brands[b.country]||0)+1);
+    const total=Object.values(live).reduce((a,b)=>a+b,0), withDeals=Object.keys(live).length;
+    const list=countries.map(c=>({...c,n:live[c.code]||0,b:brands[c.code]||0})).sort((a,b)=>b.n-a.n||b.b-a.b||a.name.localeCompare(b.name));
+    $('countryStats').innerHTML=`<p><b>${total}</b> live deals in <b>${withDeals}</b> countries</p>`+
+      list.map(c=>`<div class="row"><div>${flag(c.code)} <b>${esc(c.name)}</b><small>${c.b} brands</small></div><div><b style="font-size:1.1rem;color:${c.n?'var(--green)':'var(--muted)'}">${c.n}</b> <small style="display:inline">deals</small></div></div>`).join('');
+  }catch(e){ $('countryStats').textContent='Error: '+e.message; }
 }
 async function delBrand(id){ if(!confirm('Delete brand?'))return; await DF.remove('brands',id); loadBrands(); }
 

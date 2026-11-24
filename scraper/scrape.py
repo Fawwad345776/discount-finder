@@ -325,6 +325,8 @@ def sync_seed(db):
 
 def main():
     sa = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
+    if not sa and (Path(__file__).parent / 'service-account.json').exists():
+        sa = str(Path(__file__).parent / 'service-account.json')
     if not sa:
         sys.exit('Set FIREBASE_SERVICE_ACCOUNT (path to the JSON file or the JSON text)')
     db = DB(sa)
@@ -356,8 +358,9 @@ def main():
     def fetch(b):
         try: return b['id'], scrape_website(b['offersUrl']), None
         except Exception as e: return b['id'], None, e
+    only_social = os.environ.get('ONLY_SOCIAL') == '1'  # laptop: Instagram/Facebook only, GitHub does websites
     with ThreadPoolExecutor(10) as pool:
-        pages = {i: (r, e) for i, r, e in pool.map(fetch, [b for b in brands if b.get('offersUrl')])}
+        pages = {} if only_social else {i: (r, e) for i, r, e in pool.map(fetch, [b for b in brands if b.get('offersUrl')])}
     log(f'== Fetched {sum(1 for r, e in pages.values() if r)} of {len(pages)} websites')
 
     blocked = {'IG': 0, 'FB': 0}  # after 5 blocks in a row we stop trying that site for this run (it is blocking us)
