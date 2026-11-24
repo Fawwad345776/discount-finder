@@ -39,7 +39,6 @@
 
 <div class="card" id="login">
   <div id="demoNote" class="msg err" hidden>Firebase is not connected yet — fill config.js first.</div>
-  <label>Email</label><input id="em" type="email" autocomplete="username">
   <label>Password</label><input id="pw" type="password" autocomplete="current-password">
   <br><br><button class="red" id="loginBtn">Login</button>
 </div>
@@ -135,8 +134,13 @@ document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');i
   ['add','pending','active','brands'].forEach(t=>$('t-'+t).hidden=t!==b.dataset.t);
   ({pending:loadPending,active:loadActive,brands:loadBrands})[b.dataset.t]?.();};
 
-$('loginBtn').onclick=async()=>{ try{ await DF.signIn($('em').value.trim(),$('pw').value); showApp(); }catch(e){ say('Login failed: '+e.message,false);} };
-$('logout').onclick=()=>{DF.signOut();location.reload();};
+// Simple admin password (only its SHA-256 is stored here, not the password itself)
+const ADMIN_HASH='cb92b34505077e5f84e74c44435093eba4ea77e9a5b8f2b82b71f41a79976a80';
+async function sha256(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+const loggedIn=()=>{try{return sessionStorage.getItem('df-admin')===ADMIN_HASH;}catch(e){return false;}};
+$('loginBtn').onclick=async()=>{ if(await sha256($('pw').value)===ADMIN_HASH){ try{sessionStorage.setItem('df-admin',ADMIN_HASH);}catch(e){} showApp(); } else say('Wrong password',false); };
+$('pw').onkeydown=e=>{ if(e.key==='Enter') $('loginBtn').click(); };
+$('logout').onclick=()=>{try{sessionStorage.removeItem('df-admin');}catch(e){} DF.signOut();location.reload();};
 
 $('saveDeal').onclick=async()=>{
   const v=id=>$(id).value.trim(), tz=$('a_tz').value;
@@ -199,7 +203,7 @@ async function delBrand(id){ if(!confirm('Delete brand?'))return; await DF.remov
 
 init();
 if(DF.DEMO){ $('demoNote').hidden=false; $('loginBtn').disabled=true; }
-else if(DF.authed()) showApp();
+else if(loggedIn()) showApp();
 </script>
 </body>
 </html>
