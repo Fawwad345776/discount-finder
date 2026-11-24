@@ -21,16 +21,6 @@
  },
  {
   "country": "AE",
-  "name": "Centrepoint",
-  "category": "Fashion",
-  "offersUrl": "https://www.centrepointstores.com/ae/en/",
-  "instagram": "centrepointme",
-  "cities": [
-   "ALL"
-  ]
- },
- {
-  "country": "AE",
   "name": "Centrepoint UAE",
   "category": "Fashion",
   "offersUrl": "https://www.centrepointstores.com/ae/en/",
@@ -2711,16 +2701,6 @@
  },
  {
   "country": "QA",
-  "name": "Lulu Hypermarket Qatar",
-  "category": "Grocery",
-  "offersUrl": "https://www.luluhypermarket.com/en-qa/",
-  "instagram": "luluhypermarketqatar",
-  "cities": [
-   "ALL"
-  ]
- },
- {
-  "country": "QA",
   "name": "Lulu Qatar",
   "category": "Grocery",
   "offersUrl": "https://www.luluhypermarket.com/en-qa/",
@@ -2785,16 +2765,6 @@
   "category": "Electronics",
   "offersUrl": "https://www.jarir.com/sa-en/",
   "instagram": "jarirbookstore",
-  "cities": [
-   "ALL"
-  ]
- },
- {
-  "country": "SA",
-  "name": "Max Fashion KSA",
-  "category": "Fashion",
-  "offersUrl": "https://www.maxfashion.com/sa/en/",
-  "instagram": "maxfashionmena",
   "cities": [
    "ALL"
   ]

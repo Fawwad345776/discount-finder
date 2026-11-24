@@ -121,18 +121,46 @@ def html_to_text(h):
     return re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', h))).strip()
 
 
-def find_offers(text, limit=5):
-    """Regex fallback: short sentences that mention a discount."""
-    out, seen = [], set()
-    for s in re.split(r'(?<=[.!?\n])\s+|\s{2,}|•|\|', text):
-        s = s.strip()
-        if 8 <= len(s) <= 160 and OFFER_RE.search(s) and s.lower() not in seen:
-            seen.add(s.lower())
-            m = PCT_RE.search(s)
-            out.append({'title': s[:140], 'discount': m.group(0).upper() if m else 'SALE', 'ends': None})
-        if len(out) >= limit:
-            break
-    return out
+# a real discount: "-30%", "30% off", "up to 50% off", "save 20%", "Buy 1 Get 1", "flat 500 off"
+PCT_CTX = re.compile(r'(?:(?:up\s?to|upto|save|flat|extra|get)\s{0,3}(\d{1,2})\s?%(?![a-z0-9])'
+                     r'|(?<![\d.,])-\s?(\d{1,2})\s?%(?![a-z0-9])'
+                     r'|(?<![\d.,%])(\d{1,2})\s?%\s?(?:off|discount|sale|خصم|تخفيض))', re.I)
+BOGO_RE = re.compile(r'buy\s?(\d)\s?get\s?(\d)(\s?free)?|\bbogo\b|1\s?\+\s?1\s?free', re.I)
+FLAT_RE = re.compile(r'flat\s?(rs\.?|pkr|kwd|kd|aed|sar|qar|\$|₹|£|€)?\s?\d[\d,]*\s?(rs\.?|pkr|kwd|kd|aed|sar)?\s?off', re.I)
+EVENT_RE = re.compile(r'black\s?friday|white\s?friday|yellow\s?friday|cyber\s?monday|singles.?\s?day|11\.11|12\.12|'
+                      r'mega\s?sale|flash\s?sale|clearance(\s?sale)?|end\s?of\s?season\s?sale|eoss|year.?end\s?sale|'
+                      r'(summer|winter|eid|ramadan|national\s?day|independence\s?day|new\s?year|christmas|festive)\s?sale', re.I)
+MIN_PCT, MAX_PCT = 5, 90
+
+
+def summarize(text):
+    """Turns a page/caption into ONE clean offer, e.g. Black Friday Sale - UP TO 70% OFF. None if no real offer."""
+    pcts = [int(next(g for g in m.groups() if g)) for m in PCT_CTX.finditer(text)]
+    pcts = [x for x in pcts if MIN_PCT <= x <= MAX_PCT]
+    bogo, flat = BOGO_RE.search(text), FLAT_RE.search(text)
+    ev = EVENT_RE.search(text)
+    event = re.sub(r'\s+', ' ', ev.group(0)).title() if ev else ''
+    if event and not event.lower().endswith('sale') and re.search(r'friday|monday|day$|11\.11|12\.12', event, re.I):
+        event += ' Sale'
+    if pcts:
+        top = max(pcts)
+        disc = f'UP TO {top}% OFF' if len(set(pcts)) > 1 or re.search(r'up\s?to|upto', text, re.I) else f'{top}% OFF'
+    elif bogo:
+        disc = f'BUY {bogo.group(1) or 1} GET {bogo.group(2) or 1} FREE'
+    elif flat:
+        disc = re.sub(r'\s+', ' ', flat.group(0)).upper()
+    elif event:
+        disc = 'SALE'
+    else:
+        return None
+    label = event or ('Offer' if bogo and not pcts else 'Sale')
+    title = f'{label} - {disc.title().replace("Off", "OFF")}' if disc != 'SALE' else event
+    return {'title': title, 'discount': disc, 'description': '', 'ends': None}
+
+
+def find_offers(text):
+    one = summarize(text)
+    return [one] if one else []
 
 
 def ai_extract(text, brand):
@@ -140,8 +168,9 @@ def ai_extract(text, brand):
     key = os.environ.get('GEMINI_API_KEY')
     if not key:
         return None
-    prompt = (f"Today is {NOW.date()}. From this {brand['name']} ({brand['country']}) text, list CURRENT discounts/sales/offers only. "
-              'Ignore normal prices and menus. JSON: {"deals":[{"title":"short English title","discount":"e.g. 30% OFF",'
+    prompt = (f"Today is {NOW.date()}. From this {brand['name']} ({brand['country']}) text, list the brand's CURRENT sale campaigns/offers "
+              '(max 3), e.g. "Black Friday Sale up to 70% off", "Buy 1 Get 1 on Zinger". Do NOT list single products with prices, '
+              'policies, cashback terms or menus. JSON: {"deals":[{"title":"short English title","discount":"e.g. UP TO 30% OFF",'
               '"description":"one short line","ends":"YYYY-MM-DD or null"}]}. Empty list if none.\nText:\n' + text[:12000])
     for model in [os.environ.get('GEMINI_MODEL', 'gemini-3.8-flash'), 'gemini-2.5-flash']:
         try:
@@ -157,7 +186,15 @@ def ai_extract(text, brand):
 
 def extract(text, brand):
     res = ai_extract(text, brand)
-    return find_offers(text) if res is None else res
+    if res is None:
+        return find_offers(text)
+    # keep only AI deals that carry a real discount
+    return [f for f in res if f and f.get('title') and summarize(f"{f.get('discount', '')} {f.get('title', '')}")][:3]
+
+
+def offer_key(brand_id, discount):
+    """Same brand + same discount = same offer (from website, Instagram or Facebook)."""
+    return brand_id + '|' + re.sub(r'[^A-Z0-9]', '', str(discount).upper().replace('UPTO', 'UP TO').replace(' ', ''))
 
 
 def parse_end(ends, tz):
@@ -216,6 +253,10 @@ def scrape_website(url):
 
 
 # ---------------- main ----------------
+VERSION = 2  # deals made by older scraper versions are removed once (they had duplicates and junk)
+SEEN = {}    # offer_key -> deal id, filled by cleanup()
+
+
 def save(db, brand, items, source_type, source_url, source_id, image, posted, stats):
     tz = country_tz(brand['country'])
     for f in items or []:
@@ -224,32 +265,43 @@ def save(db, brand, items, source_type, source_url, source_id, image, posted, st
         expires = parse_end(f.get('ends'), tz)
         if expires and expires <= NOW:
             continue
-        did = deal_id(brand['id'], source_id or source_url, f['title'])
+        key = offer_key(brand['id'], f.get('discount') or f['title'])
+        if key in SEEN:  # this brand already has this offer -> no doubling, just keep it alive
+            db.update('deals', SEEN[key], {'lastChecked': NOW})
+            continue
+        did = deal_id(key)
         deal = {'brand': brand['name'], 'brandId': brand['id'], 'title': str(f['title'])[:140],
                 'discount': f.get('discount') or '', 'description': f.get('description') or '',
                 'category': brand.get('category') if brand.get('category') in CATS else 'Other',
                 'country': brand['country'], 'city': (brand.get('cities') or ['ALL'])[0], 'tz': tz,
                 'startsAt': None, 'expiresAt': expires, 'sourceType': source_type, 'sourceUrl': source_url,
-                'sourceId': source_id, 'image': image or '', 'status': 'active', 'extractor': 'python',
+                'sourceId': source_id, 'image': image or '', 'status': 'active', 'extractor': 'python', 'v': VERSION,
                 'lastChecked': NOW, 'createdAt': posted or NOW}
         if db.create('deals', did, deal):
             stats['added'] += 1
-            log(f"   + {brand['name']}: {deal['title'][:70]} ({deal['discount']})")
-        elif source_type == 'website':
-            db.update('deals', did, {'lastChecked': NOW})  # still on the site -> keep it alive
+            log(f"   + {brand['name']}: {deal['title'][:70]}")
+        else:
+            db.update('deals', did, {'lastChecked': NOW})
+        SEEN[key] = did
 
 
 def cleanup(db, stats):
-    for d in db.all('deals'):
-        if d.get('sourceType') == 'manual' and not d.get('expiresAt'):
+    for d in sorted(db.all('deals'), key=lambda d: d.get('expiresAt') is None):  # deals with an end date win
+        manual = d.get('sourceType') == 'manual'
+        if manual and not d.get('expiresAt'):
             continue  # your own deals without end date stay until you delete them
         exp, seen, made = d.get('expiresAt'), d.get('lastChecked'), d.get('createdAt')
         old = (exp and exp <= NOW) or (not exp and (
             (d.get('sourceType') == 'website' and (not seen or NOW - seen > TWO_DAYS)) or
             (d.get('sourceType') != 'website' and (not made or NOW - made > TWO_DAYS))))
-        if old:
+        junk = not manual and d.get('v') != VERSION
+        key = offer_key(d.get('brandId', ''), d.get('discount') or d.get('title', ''))
+        dup = not manual and key in SEEN
+        if old or junk or dup:
             db.delete('deals', d['id'])
             stats['deleted'] += 1
+        elif not manual:
+            SEEN[key] = d['id']
 
 
 def sync_seed(db):
@@ -281,7 +333,17 @@ def main():
     log(f"== Deleted {stats['deleted']} old/expired deals")
 
     sync_seed(db)
-    brands = [b for b in db.all('brands') if b.get('active') is not False]
+    brands, same = [], {}
+    for b in sorted(db.all('brands'), key=lambda b: b.get('createdAt') or NOW):
+        if b.get('active') is False:
+            continue
+        k = (b.get('country'), (b.get('offersUrl') or '').rstrip('/').lower() or (b.get('instagram') or '').lower() or b['name'].lower())
+        if k in same:  # same brand added twice -> turn the copy off so its offers are not doubled
+            db.update('brands', b['id'], {'active': False})
+            log(f"== Duplicate brand turned off: {b['name']} (same as {same[k]})")
+            continue
+        same[k] = b['name']
+        brands.append(b)
     if os.environ.get('ONLY_COUNTRY'):
         brands = [b for b in brands if b.get('country') == os.environ['ONLY_COUNTRY']]
     epoch = datetime(2000, 1, 1, tzinfo=timezone.utc)
