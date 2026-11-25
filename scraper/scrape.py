@@ -310,13 +310,12 @@ def save(db, brand, items, source_type, source_url, source_id, image, posted, st
             # one website deal per brand: if the % changes on the site, the same deal is updated (no doubling)
             key = brand['id'] + '|web'
             if key in SEEN:
-                db.update('deals', SEEN[key], {'title': str(f['title'])[:140], 'discount': f.get('discount') or '',
-                                               'expiresAt': expires, 'lastChecked': NOW})
+                touch(db, SEEN[key], {'title': str(f['title'])[:140], 'discount': f.get('discount') or '', 'expiresAt': expires})
                 continue
         else:
             key = offer_key(brand['id'], f.get('discount') or f['title'])
         if key in SEEN:  # this brand already has this offer -> no doubling, just keep it alive
-            db.update('deals', SEEN[key], {'lastChecked': NOW})
+            touch(db, SEEN[key])
             continue
         did = deal_id(key)
         deal = {'brand': brand['name'], 'brandId': brand['id'], 'title': str(f['title'])[:140],
@@ -330,8 +329,23 @@ def save(db, brand, items, source_type, source_url, source_id, image, posted, st
             stats['added'] += 1
             log(f"   + {brand['name']}: {deal['title'][:70]}")
         else:
-            db.update('deals', did, {'lastChecked': NOW})
+            touch(db, did)
         SEEN[key] = did
+        SEEN_INFO.setdefault(did, (NOW, deal['title'], deal['discount'], expires))
+
+
+SEEN_INFO = {}             # deal id -> (lastChecked, title, discount, expiresAt)
+REFRESH = timedelta(hours=12)  # still-running deals are re-confirmed at most every 12h (saves Firebase writes)
+
+
+def touch(db, did, fields=None):
+    """Update an existing deal only if something changed or it was not re-confirmed for 12h."""
+    seen, title, disc, exp = SEEN_INFO.get(did, (None, None, None, None))
+    changed = fields and (fields.get('title') != title or fields.get('discount') != disc or fields.get('expiresAt') != exp)
+    if not changed and seen and NOW - seen < REFRESH:
+        return
+    db.update('deals', did, dict(fields or {}, lastChecked=NOW))
+    SEEN_INFO[did] = (NOW, (fields or {}).get('title', title), (fields or {}).get('discount', disc), (fields or {}).get('expiresAt', exp))
 
 
 def cleanup(db, stats):
@@ -356,6 +370,7 @@ def cleanup(db, stats):
             stats['deleted'] += 1
         elif not manual:
             SEEN[key] = d['id']
+            SEEN_INFO[d['id']] = (seen, d.get('title'), d.get('discount'), exp)
 
 
 def sync_seed(db):
@@ -538,6 +553,7 @@ def main():
             log('== Time up, the rest next run')
             break
         log(f"-- {b['country']} {b['name']}")
+        upd = {}
         ig, fb = b.get('instagram'), b.get('facebook') or b.get('instagram')
         if os.environ.get('SKIP_FACEBOOK') == '1':
             fb = None
@@ -570,13 +586,24 @@ def main():
             res, err = pages[b['id']]
             if res:
                 if res[2] and not b.get('instagram'):  # learned the brand's Instagram from its website
-                    b['instagram'] = res[2]; db.update('brands', b['id'], {'instagram': res[2]})
+                    b['instagram'] = res[2]; upd['instagram'] = res[2]
                     log(f"   found Instagram: @{res[2]}")
-                try: save(db, b, extract(res[0], b), 'website', b['offersUrl'], None, res[1], None, stats)
+                # AI only when the offer on the page changed; otherwise reuse last time's result (saves Gemini quota)
+                sig = hashlib.sha1(json.dumps(summarize(res[0]), sort_keys=True).encode()).hexdigest()[:16]
+                if sig == b.get('pageSig') and isinstance(b.get('lastOffers'), list):
+                    items = b['lastOffers']; stats['ai_skipped'] = stats.get('ai_skipped', 0) + 1
+                else:
+                    items = extract(res[0], b)
+                    upd['pageSig'] = sig
+                    upd['lastOffers'] = [{k: str(f.get(k) or '') for k in ('title', 'discount', 'description', 'ends')} for f in items or [] if f]
+                try: save(db, b, items, 'website', b['offersUrl'], None, res[1], None, stats)
                 except Exception as e: stats['errors'] += 1; log('   SAVE:', e)
             else:
                 stats['errors'] += 1; log('   WEB:', err)
-        db.update('brands', b['id'], {'lastRun': NOW})
+        last = b.get('lastRun')
+        if upd or not last or NOW - last > timedelta(hours=6):  # fewer Firebase writes
+            upd['lastRun'] = NOW
+            db.update('brands', b['id'], upd)
 
     export_live(db)
     log('== Done', json.dumps(stats))
