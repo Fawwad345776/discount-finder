@@ -239,8 +239,16 @@ def offer_line(text, top_pct, other_match):
     good = [p for p in parts if hit.search(p) and 15 <= len(p) <= 180 and len(re.findall(r'[A-Za-z]{3,}', p)) >= 3]
     if not good:
         return ''
-    best = min(good, key=lambda p: abs(len(p) - 80))  # a full but short sentence
-    return re.sub(r'\s+', ' ', best)[:160]
+    best = re.sub(r'\s+', ' ', min(good, key=lambda p: abs(len(p) - 80)))  # a full but short sentence
+    # start at the offer itself ("Get 15% off ..."), dropping menu/button words before it
+    m = hit.search(best)
+    starts = [x.start() for x in re.finditer(r'\b(get|enjoy|save|flat|avail|buy|up\s?to|upto|extra|shop|order|use code|sale)\b', best, re.I)
+              if x.start() <= m.start() and m.start() - x.start() <= 60]
+    if starts:
+        best = best[starts[-1] if best[starts[-1]:m.start()].strip() == '' else starts[0]:]
+    elif m.start() > 60:
+        best = best[m.start() - 40:].split(' ', 1)[-1]
+    return best[:1].upper() + best[1:160]
 
 
 def find_offers(text):
