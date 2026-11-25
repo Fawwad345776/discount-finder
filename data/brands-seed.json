@@ -2991,6 +2991,26 @@
  },
  {
   "country": "PK",
+  "name": "Dvago",
+  "category": "Beauty",
+  "offersUrl": "https://www.dvago.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Luscious Cosmetics",
+  "category": "Beauty",
+  "offersUrl": "https://lusciouscosmetics.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Medora",
   "category": "Beauty",
   "offersUrl": "https://medora.pk/",
@@ -3101,6 +3121,16 @@
  },
  {
   "country": "PK",
+  "name": "PEL",
+  "category": "Electronics",
+  "offersUrl": "https://www.pel.com.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "PriceOye",
   "category": "Electronics",
   "offersUrl": "https://priceoye.pk/",
@@ -3125,6 +3155,16 @@
   "category": "Electronics",
   "offersUrl": "https://www.telemart.pk/",
   "instagram": "telemart.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Agha Noor",
+  "category": "Fashion",
+  "offersUrl": "https://aghanoorofficial.com/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -3215,6 +3255,16 @@
   "category": "Fashion",
   "offersUrl": "https://breakout.com.pk/",
   "instagram": "breakoutpk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Cambridge",
+  "category": "Fashion",
+  "offersUrl": "https://thecambridgeshop.com/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -3441,6 +3491,16 @@
  },
  {
   "country": "PK",
+  "name": "Minnie Minors",
+  "category": "Fashion",
+  "offersUrl": "https://minnieminors.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Ndure",
   "category": "Fashion",
   "offersUrl": "https://www.ndure.com/",
@@ -3491,10 +3551,30 @@
  },
  {
   "country": "PK",
+  "name": "Saya",
+  "category": "Fashion",
+  "offersUrl": "https://saya.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Servis Shoes",
   "category": "Fashion",
   "offersUrl": "https://www.servis.pk/",
   "instagram": "servisshoes",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "So Kamal",
+  "category": "Fashion",
+  "offersUrl": "https://www.sokamal.com/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -3841,6 +3921,16 @@
  },
  {
   "country": "PK",
+  "name": "Wild Wings",
+  "category": "Food",
+  "offersUrl": "https://wildwings.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "foodpanda Pakistan",
   "category": "Food",
   "offersUrl": "https://www.foodpanda.pk/",
@@ -3951,6 +4041,16 @@
  },
  {
   "country": "PK",
+  "name": "Ideas by Gul Ahmed Home",
+  "category": "Home",
+  "offersUrl": "https://www.gulahmedshop.com/home",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Interwood",
   "category": "Home",
   "offersUrl": "https://interwood.pk/",
@@ -3975,6 +4075,16 @@
   "category": "Other",
   "offersUrl": "https://www.ishopping.pk/",
   "instagram": "ishopping.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Airblue",
+  "category": "Travel",
+  "offersUrl": "https://www.airblue.com/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]

@@ -278,7 +278,19 @@ def scrape_website(url):
     r = S.get(url, timeout=25)
     r.raise_for_status()
     img = re.search(r'<meta[^>]+property="og:image"[^>]+content="([^"]+)"', r.text)
-    return html_to_text(r.text), (img.group(1) if img else '')
+    return html_to_text(r.text), (img.group(1) if img else ''), find_instagram(r.text)
+
+
+IG_SKIP = {'p', 'reel', 'reels', 'explore', 'accounts', 'stories', 'tv', 'about', 'developer', 'legal', 'direct', 'instagram'}
+
+
+def find_instagram(page_html):
+    """Brand's own Instagram username from the links on its website (footer icons etc.)."""
+    for m in re.finditer(r'instagram\.com/([A-Za-z0-9_.]{2,30})', page_html):
+        u = m.group(1).strip('.').lower()
+        if u not in IG_SKIP:
+            return u
+    return ''
 
 
 # ---------------- main ----------------
@@ -476,6 +488,9 @@ def main():
         if b['id'] in pages:
             res, err = pages[b['id']]
             if res:
+                if res[2] and not b.get('instagram'):  # learned the brand's Instagram from its website
+                    b['instagram'] = res[2]; db.update('brands', b['id'], {'instagram': res[2]})
+                    log(f"   found Instagram: @{res[2]}")
                 try: save(db, b, extract(res[0], b), 'website', b['offersUrl'], None, res[1], None, stats)
                 except Exception as e: stats['errors'] += 1; log('   SAVE:', e)
             else:
