@@ -2981,10 +2981,140 @@
  },
  {
   "country": "PK",
+  "name": "Conatural",
+  "category": "Beauty",
+  "offersUrl": "https://conatural.com/",
+  "instagram": "conatural",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Medora",
+  "category": "Beauty",
+  "offersUrl": "https://medora.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Saeed Ghani",
+  "category": "Beauty",
+  "offersUrl": "https://saeedghani.pk/",
+  "instagram": "saeedghani.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "WB by Hemani",
+  "category": "Beauty",
+  "offersUrl": "https://wbhemani.com/",
+  "instagram": "wbbyhemani",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Czone",
+  "category": "Electronics",
+  "offersUrl": "https://www.czone.com.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Dawlance",
+  "category": "Electronics",
+  "offersUrl": "https://www.dawlance.com.pk/",
+  "instagram": "dawlanceofficial",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Gree Pakistan",
+  "category": "Electronics",
+  "offersUrl": "https://gree.com.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Haier Pakistan",
+  "category": "Electronics",
+  "offersUrl": "https://www.haier.com/pk/",
+  "instagram": "haierpakistan",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "HomeShopping",
+  "category": "Electronics",
+  "offersUrl": "https://homeshopping.pk/",
+  "instagram": "homeshopping.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Mega.pk",
+  "category": "Electronics",
+  "offersUrl": "https://www.mega.pk/",
+  "instagram": "megapk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Mobilezone",
   "category": "Electronics",
   "offersUrl": "https://www.mobilezone.pk/",
   "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Orient Electronics",
+  "category": "Electronics",
+  "offersUrl": "https://orient.com.pk/",
+  "instagram": "orientelectronics",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "PriceOye",
+  "category": "Electronics",
+  "offersUrl": "https://priceoye.pk/",
+  "instagram": "priceoye.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Shophive",
+  "category": "Electronics",
+  "offersUrl": "https://www.shophive.com/",
+  "instagram": "shophive",
   "cities": [
    "ALL"
   ]
@@ -3011,10 +3141,50 @@
  },
  {
   "country": "PK",
+  "name": "Asim Jofa",
+  "category": "Fashion",
+  "offersUrl": "https://asimjofa.com/",
+  "instagram": "asimjofaofficial",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Bareeze",
+  "category": "Fashion",
+  "offersUrl": "https://bareeze.com/",
+  "instagram": "bareeze.official",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Baroque",
+  "category": "Fashion",
+  "offersUrl": "https://baroque.pk/",
+  "instagram": "baroque.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Bata Pakistan",
   "category": "Fashion",
   "offersUrl": "https://www.bata.com.pk/",
   "instagram": "batapakistan",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Beechtree",
+  "category": "Fashion",
+  "offersUrl": "https://beechtree.pk/",
+  "instagram": "beechtree.pk",
   "cities": [
    "ALL"
   ]
@@ -3031,10 +3201,120 @@
  },
  {
   "country": "PK",
+  "name": "Borjan",
+  "category": "Fashion",
+  "offersUrl": "https://www.borjan.com.pk/",
+  "instagram": "borjanshoes",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Breakout",
   "category": "Fashion",
   "offersUrl": "https://breakout.com.pk/",
   "instagram": "breakoutpk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Charcoal",
+  "category": "Fashion",
+  "offersUrl": "https://charcoal.com.pk/",
+  "instagram": "charcoalclothing",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Cougar",
+  "category": "Fashion",
+  "offersUrl": "https://cougar.com.pk/",
+  "instagram": "cougarclothing",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Cross Stitch",
+  "category": "Fashion",
+  "offersUrl": "https://www.crossstitch.pk/",
+  "instagram": "crossstitchofficial",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Diners",
+  "category": "Fashion",
+  "offersUrl": "https://diners.com.pk/",
+  "instagram": "dinerspakistan",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Edenrobe",
+  "category": "Fashion",
+  "offersUrl": "https://edenrobe.com/",
+  "instagram": "edenrobe",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Ego",
+  "category": "Fashion",
+  "offersUrl": "https://wearego.com/",
+  "instagram": "wearego",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Engine",
+  "category": "Fashion",
+  "offersUrl": "https://engine.com.pk/",
+  "instagram": "engine.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Ethnic",
+  "category": "Fashion",
+  "offersUrl": "https://pk.ethnc.com/",
+  "instagram": "ethnicbyoutfitters",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Furor",
+  "category": "Fashion",
+  "offersUrl": "https://furorjeans.com/",
+  "instagram": "furorjeans",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Generation",
+  "category": "Fashion",
+  "offersUrl": "https://generation.com.pk/",
+  "instagram": "generationpk",
   "cities": [
    "ALL"
   ]
@@ -3051,10 +3331,40 @@
  },
  {
   "country": "PK",
+  "name": "Hush Puppies Pakistan",
+  "category": "Fashion",
+  "offersUrl": "https://hushpuppies.com.pk/",
+  "instagram": "hushpuppiespk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Insignia",
+  "category": "Fashion",
+  "offersUrl": "https://www.insignia.com.pk/",
+  "instagram": "insigniapk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Junaid Jamshed",
   "category": "Fashion",
   "offersUrl": "https://www.junaidjamshed.com/",
   "instagram": "junaidjamshedofficial",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Kayseria",
+  "category": "Fashion",
+  "offersUrl": "https://www.kayseria.com/",
+  "instagram": "kayseria.official",
   "cities": [
    "ALL"
   ]
@@ -3071,6 +3381,16 @@
  },
  {
   "country": "PK",
+  "name": "Leisure Club",
+  "category": "Fashion",
+  "offersUrl": "https://leisureclub.pk/",
+  "instagram": "leisureclub.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Limelight",
   "category": "Fashion",
   "offersUrl": "https://www.limelight.pk/",
@@ -3081,10 +3401,80 @@
  },
  {
   "country": "PK",
+  "name": "Lulusar",
+  "category": "Fashion",
+  "offersUrl": "https://lulusar.com/",
+  "instagram": "lulusar",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Maria B",
+  "category": "Fashion",
+  "offersUrl": "https://www.mariab.pk/",
+  "instagram": "mariab.official",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Mausummery",
+  "category": "Fashion",
+  "offersUrl": "https://mausummery.com/",
+  "instagram": "mausummery",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Metro Shoes",
+  "category": "Fashion",
+  "offersUrl": "https://metroshoes.com.pk/",
+  "instagram": "metroshoes.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Ndure",
+  "category": "Fashion",
+  "offersUrl": "https://www.ndure.com/",
+  "instagram": "ndure.official",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Nishat Linen",
+  "category": "Fashion",
+  "offersUrl": "https://nishatlinen.com/",
+  "instagram": "nishatlinen",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Outfitters",
   "category": "Fashion",
   "offersUrl": "https://outfitters.com.pk/",
   "instagram": "outfitterspk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Sana Safinaz",
+  "category": "Fashion",
+  "offersUrl": "https://www.sanasafinaz.com/",
+  "instagram": "sanasafinazofficial",
   "cities": [
    "ALL"
   ]
@@ -3111,6 +3501,106 @@
  },
  {
   "country": "PK",
+  "name": "Stylo",
+  "category": "Fashion",
+  "offersUrl": "https://stylo.pk/",
+  "instagram": "stylo.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Uniworth",
+  "category": "Fashion",
+  "offersUrl": "https://uniworthshop.com/",
+  "instagram": "uniworthpakistan",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Zeen",
+  "category": "Fashion",
+  "offersUrl": "https://zeenwoman.com/",
+  "instagram": "zeenwoman",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "14th Street Pizza",
+  "category": "Food",
+  "offersUrl": "https://14thstreetpizza.com/",
+  "instagram": "14thstreetpizza",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Broadway Pizza",
+  "category": "Food",
+  "offersUrl": "https://www.broadwaypizza.com.pk/",
+  "instagram": "broadwaypizza",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Bundu Khan",
+  "category": "Food",
+  "offersUrl": "https://bundukhan.pk/",
+  "instagram": "bundukhanofficial",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Burger King Pakistan",
+  "category": "Food",
+  "offersUrl": "https://burgerking.com.pk/",
+  "instagram": "burgerkingpakistan",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Burger Lab",
+  "category": "Food",
+  "offersUrl": "https://burgerlab.com.pk/",
+  "instagram": "burgerlab.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "California Pizza",
+  "category": "Food",
+  "offersUrl": "https://californiapizza.com.pk/",
+  "instagram": "californiapizzapk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Chaaye Khana",
+  "category": "Food",
+  "offersUrl": "https://chaayekhana.com/",
+  "instagram": "chaayekhana",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Cheezious",
   "category": "Food",
   "offersUrl": "https://cheezious.com/",
@@ -3131,10 +3621,80 @@
  },
  {
   "country": "PK",
+  "name": "Dunkin' Pakistan",
+  "category": "Food",
+  "offersUrl": "https://dunkin.pk/",
+  "instagram": "dunkinpakistan",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Ginsoy",
+  "category": "Food",
+  "offersUrl": "https://ginsoy.com/",
+  "instagram": "ginsoyextreme",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Gloria Jean's Pakistan",
+  "category": "Food",
+  "offersUrl": "https://gloriajeanscoffees.pk/",
+  "instagram": "gloriajeanspk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Hardee's Pakistan",
   "category": "Food",
   "offersUrl": "https://hardees.com.pk/",
   "instagram": "hardeespakistan",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Hot n Spicy",
+  "category": "Food",
+  "offersUrl": "https://hotnspicy.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Howdy",
+  "category": "Food",
+  "offersUrl": "https://howdy.com.pk/",
+  "instagram": "howdy.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Jalal Sons",
+  "category": "Food",
+  "offersUrl": "https://jalalsons.com.pk/",
+  "instagram": "jalalsons",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Johnny & Jugnu",
+  "category": "Food",
+  "offersUrl": "https://johnnyandjugnu.com/",
+  "instagram": "johnnyandjugnu",
   "cities": [
    "ALL"
   ]
@@ -3151,10 +3711,50 @@
  },
  {
   "country": "PK",
+  "name": "Kababjees",
+  "category": "Food",
+  "offersUrl": "https://kababjees.com/",
+  "instagram": "kababjeesofficial",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Kababjees Fried Chicken",
+  "category": "Food",
+  "offersUrl": "https://kababjeesfriedchicken.com/",
+  "instagram": "kababjeesfriedchicken",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Krispy2Go",
+  "category": "Food",
+  "offersUrl": "https://krispy2go.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "McDonald's Pakistan",
   "category": "Food",
   "offersUrl": "https://www.mcdonalds.com.pk/",
   "instagram": "mcdonaldspakistan",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "OPTP",
+  "category": "Food",
+  "offersUrl": "https://www.optp.pk/",
+  "instagram": "optp.pk",
   "cities": [
    "ALL"
   ]
@@ -3171,10 +3771,70 @@
  },
  {
   "country": "PK",
+  "name": "Pizza Max",
+  "category": "Food",
+  "offersUrl": "https://www.pizzamax.com.pk/",
+  "instagram": "pizzamaxpk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Ranchers",
+  "category": "Food",
+  "offersUrl": "https://ranchers.com.pk/",
+  "instagram": "ranchers.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Salt'n Pepper",
+  "category": "Food",
+  "offersUrl": "https://saltnpepper.com.pk/",
+  "instagram": "saltnpepperpk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Savour Foods",
   "category": "Food",
   "offersUrl": "https://www.savourfoods.com.pk/",
   "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Student Biryani",
+  "category": "Food",
+  "offersUrl": "https://studentbiryani.com/",
+  "instagram": "studentbiryaniofficial",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Subway Pakistan",
+  "category": "Food",
+  "offersUrl": "https://subway.com.pk/",
+  "instagram": "subwaypakistan",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Tehzeeb Bakers",
+  "category": "Food",
+  "offersUrl": "https://tehzeeb.com/",
+  "instagram": "tehzeebbakers",
   "cities": [
    "ALL"
   ]
@@ -3191,10 +3851,40 @@
  },
  {
   "country": "PK",
+  "name": "Al-Fatah",
+  "category": "Grocery",
+  "offersUrl": "https://alfatah.pk/",
+  "instagram": "alfatahstores",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Carrefour Pakistan",
   "category": "Grocery",
   "offersUrl": "https://www.carrefour.pk/",
   "instagram": "carrefourpakistan",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Chase Up",
+  "category": "Grocery",
+  "offersUrl": "https://chaseup.com.pk/",
+  "instagram": "chaseupofficial",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "GrocerApp",
+  "category": "Grocery",
+  "offersUrl": "https://grocerapp.pk/",
+  "instagram": "grocerapp",
   "cities": [
    "ALL"
   ]
@@ -3211,9 +3901,29 @@
  },
  {
   "country": "PK",
+  "name": "Metro Pakistan",
+  "category": "Grocery",
+  "offersUrl": "https://www.metro.pk/",
+  "instagram": "metropakistan",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Naheed",
   "category": "Grocery",
   "offersUrl": "https://www.naheed.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Chase Value",
+  "category": "Home",
+  "offersUrl": "https://chasevalue.pk/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -3231,10 +3941,60 @@
  },
  {
   "country": "PK",
+  "name": "Habitt",
+  "category": "Home",
+  "offersUrl": "https://habitt.com/",
+  "instagram": "habitt.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Interwood",
+  "category": "Home",
+  "offersUrl": "https://interwood.pk/",
+  "instagram": "interwoodmobel",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Daraz",
   "category": "Other",
   "offersUrl": "https://www.daraz.pk/",
   "instagram": "darazpk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "iShopping",
+  "category": "Other",
+  "offersUrl": "https://www.ishopping.pk/",
+  "instagram": "ishopping.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Bookme",
+  "category": "Travel",
+  "offersUrl": "https://bookme.pk/",
+  "instagram": "bookme.pk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Sastaticket",
+  "category": "Travel",
+  "offersUrl": "https://www.sastaticket.pk/",
+  "instagram": "sastaticket.pk",
   "cities": [
    "ALL"
   ]
