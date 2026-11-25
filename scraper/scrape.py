@@ -227,6 +227,10 @@ def summarize(text):
     return {'title': title, 'discount': disc, 'description': offer_line(text, pcts and max(pcts), bogo or flat or ev), 'ends': None}
 
 
+PRICE_LINE = re.compile(r'(regular|sale|unit|original)\s?price|add to (basket|cart|bag)|view all|out of stock|'
+                        r'(rs\.?|pkr|aed|sar|kwd|qar|usd|inr|₹|\$|£|€)\s?\d[\d,]*(\.\d+)?|\d[\d,]*(\.\d+)?\s?(rs|pkr|aed|sar|kwd|qar)\b', re.I)
+
+
 def offer_line(text, top_pct, other_match):
     """The sentence on the page that explains the offer, e.g. 'Get 15% off on domestic flights with HBL cards'."""
     parts = [p.strip(' -|•·') for p in re.split(r'(?<=[.!?])\s+|\s{2,}|[|•·\n]', text)]
@@ -236,7 +240,8 @@ def offer_line(text, top_pct, other_match):
         hit = re.compile(re.escape(other_match.group(0)), re.I)
     else:
         return ''
-    good = [p for p in parts if hit.search(p) and 15 <= len(p) <= 180 and len(re.findall(r'[A-Za-z]{3,}', p)) >= 3]
+    good = [p for p in parts if hit.search(p) and 15 <= len(p) <= 180 and len(re.findall(r'[A-Za-z]{3,}', p)) >= 3
+            and not PRICE_LINE.search(p)]  # product cards ("Sale price PKR 3,534 Regular price") are not offer lines
     if not good:
         return ''
     best = re.sub(r'\s+', ' ', min(good, key=lambda p: abs(len(p) - 80)))  # a full but short sentence

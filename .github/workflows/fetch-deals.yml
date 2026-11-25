@@ -50,3 +50,30 @@ jobs:
           git pull -q --rebase -X theirs origin main
           git push -q origin HEAD:main
           git push -q -f origin HEAD:gh-pages
+
+  # GitHub's own schedule is unreliable (runs are often hours late or skipped).
+  # So every run starts the next one itself, 2 hours after it began. If a newer run
+  # already exists (from the schedule or cron-job.org), this one steps aside.
+  next:
+    needs: fetch
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    permissions:
+      actions: write
+    steps:
+      - name: Wait, then start the next run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          started=$(gh api repos/$REPO/actions/runs/$RUN_ID --jq .created_at)
+          wait=$(( $(date -d "$started" +%s) + 7200 - $(date +%s) ))
+          echo "Next run in $wait seconds"
+          [ $wait -gt 0 ] && sleep $wait
+          newer=$(gh api "repos/$REPO/actions/workflows/fetch-deals.yml/runs?per_page=10" \
+                  --jq "[.workflow_runs[] | select(.id != $RUN_ID and .created_at > \"$started\")] | length")
+          if [ "$newer" != "0" ]; then echo "A newer run already exists, not starting another"; exit 0; fi
+          gh api -X POST repos/$REPO/actions/workflows/fetch-deals.yml/dispatches -f ref=main
+          echo "Next run started"
