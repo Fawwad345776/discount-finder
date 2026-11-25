@@ -294,7 +294,15 @@ def save(db, brand, items, source_type, source_url, source_id, image, posted, st
         expires = parse_end(f.get('ends'), tz)
         if expires and expires <= NOW:
             continue
-        key = offer_key(brand['id'], f.get('discount') or f['title'])
+        if source_type == 'website':
+            # one website deal per brand: if the % changes on the site, the same deal is updated (no doubling)
+            key = brand['id'] + '|web'
+            if key in SEEN:
+                db.update('deals', SEEN[key], {'title': str(f['title'])[:140], 'discount': f.get('discount') or '',
+                                               'expiresAt': expires, 'lastChecked': NOW})
+                continue
+        else:
+            key = offer_key(brand['id'], f.get('discount') or f['title'])
         if key in SEEN:  # this brand already has this offer -> no doubling, just keep it alive
             db.update('deals', SEEN[key], {'lastChecked': NOW})
             continue
@@ -315,7 +323,9 @@ def save(db, brand, items, source_type, source_url, source_id, image, posted, st
 
 
 def cleanup(db, stats):
-    for d in sorted(db.all('deals'), key=lambda d: d.get('expiresAt') is None):  # deals with an end date win
+    epoch = datetime(2000, 1, 1, tzinfo=timezone.utc)
+    deals = sorted(db.all('deals'), key=lambda d: d.get('lastChecked') or epoch, reverse=True)  # newest first
+    for d in sorted(deals, key=lambda d: d.get('expiresAt') is None):  # deals with an end date win
         manual = d.get('sourceType') == 'manual'
         if manual and not d.get('expiresAt'):
             continue  # your own deals without end date stay until you delete them
@@ -324,7 +334,10 @@ def cleanup(db, stats):
             (d.get('sourceType') == 'website' and (not seen or NOW - seen > TWO_DAYS)) or
             (d.get('sourceType') != 'website' and (not made or NOW - made > TWO_DAYS))))
         junk = not manual and d.get('v') != VERSION
-        key = offer_key(d.get('brandId', ''), d.get('discount') or d.get('title', ''))
+        if d.get('sourceType') == 'website':
+            key = d.get('brandId', '') + '|web'
+        else:
+            key = offer_key(d.get('brandId', ''), d.get('discount') or d.get('title', ''))
         dup = not manual and key in SEEN
         if old or junk or dup:
             db.delete('deals', d['id'])
