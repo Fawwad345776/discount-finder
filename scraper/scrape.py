@@ -495,6 +495,9 @@ def export_live(db):
     log(f'== Exported {sum(map(len, by.values()))} live deals for {len(by)} countries to data/live/')
 
 
+AI_FAILS = {}
+
+
 def gemini_json(prompt, timeout=90):
     key = os.environ.get('GEMINI_API_KEY')
     if not key:
@@ -506,6 +509,9 @@ def gemini_json(prompt, timeout=90):
                                     'generationConfig': {'responseMimeType': 'application/json', 'temperature': 0.2}})
             if r.ok:
                 return json.loads(r.json()['candidates'][0]['content']['parts'][0]['text'])
+            AI_FAILS[f'{model} {r.status_code}'] = AI_FAILS.get(f'{model} {r.status_code}', 0) + 1
+            if AI_FAILS[f'{model} {r.status_code}'] <= 2:
+                log('   AI failed', model, r.status_code, r.text[:200].replace('\n', ' '))
         except Exception as e:
             log('   AI error', model, e)
     return None
@@ -679,6 +685,7 @@ def main():
     export_live(db)
     if isinstance(db, CachedDB):
         db.save()
+    if AI_FAILS: log('== AI failures:', json.dumps(AI_FAILS))
     log('== Done', json.dumps(stats))
 
 
