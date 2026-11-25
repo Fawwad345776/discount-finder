@@ -224,7 +224,23 @@ def summarize(text):
         return None
     label = event or ('Offer' if bogo and not pcts else 'Sale')
     title = f'{label} - {disc.title().replace("Off", "OFF")}' if disc != 'SALE' else event
-    return {'title': title, 'discount': disc, 'description': '', 'ends': None}
+    return {'title': title, 'discount': disc, 'description': offer_line(text, pcts and max(pcts), bogo or flat or ev), 'ends': None}
+
+
+def offer_line(text, top_pct, other_match):
+    """The sentence on the page that explains the offer, e.g. 'Get 15% off on domestic flights with HBL cards'."""
+    parts = [p.strip(' -|•·') for p in re.split(r'(?<=[.!?])\s+|\s{2,}|[|•·\n]', text)]
+    if top_pct:
+        hit = re.compile(rf'(?<!\d){top_pct}\s?%')
+    elif other_match:
+        hit = re.compile(re.escape(other_match.group(0)), re.I)
+    else:
+        return ''
+    good = [p for p in parts if hit.search(p) and 15 <= len(p) <= 180 and len(re.findall(r'[A-Za-z]{3,}', p)) >= 3]
+    if not good:
+        return ''
+    best = min(good, key=lambda p: abs(len(p) - 80))  # a full but short sentence
+    return re.sub(r'\s+', ' ', best)[:160]
 
 
 def find_offers(text):
@@ -235,7 +251,7 @@ def find_offers(text):
 def ai_extract(text, brand):
     """Gemini (optional): returns [{'title','discount','description','ends'}]; None if no key / failed."""
     key = os.environ.get('GEMINI_API_KEY')
-    if not key:
+    if not key or AI_DOWN[0]:
         return None
     prompt = (f"Today is {NOW.date()}. From this {brand['name']} ({brand['country']}) text, list the brand's CURRENT sale campaigns/offers "
               '(max 3), e.g. "Black Friday Sale up to 70% off", "Buy 1 Get 1 on Zinger". Do NOT list single products with prices, '
@@ -248,9 +264,15 @@ def ai_extract(text, brand):
                                     'generationConfig': {'responseMimeType': 'application/json', 'temperature': 0.1}})
             if r.ok:
                 return json.loads(r.json()['candidates'][0]['content']['parts'][0]['text']).get('deals', [])
+            if r.status_code == 429:
+                AI_DOWN[0] = True
+                log('== Gemini quota used up, deals use plain text for the rest of this run')
         except Exception as e:
             log('   AI error', model, e)
     return None
+
+
+AI_DOWN = [False]
 
 
 def extract(text, brand):
@@ -347,7 +369,29 @@ def scrape_website(url):
     r = S.get(url, timeout=25)
     r.raise_for_status()
     img = re.search(r'<meta[^>]+property="og:image"[^>]+content="([^"]+)"', r.text)
-    return html_to_text(r.text), (img.group(1) if img else ''), find_instagram(r.text)
+    return html_to_text(r.text), (img.group(1) if img else ''), find_instagram(r.text), find_offers_page(r.text, r.url)
+
+
+OFFER_LINK = re.compile(r'offer|deal|promo|discount|sale|coupon|voucher|black-?friday|عروض|خصم', re.I)
+
+
+def find_offers_page(page_html, base):
+    """Link to the site's own offers/deals page (same website), so 'View offer' opens the right page."""
+    from urllib.parse import urljoin, urlparse
+    host = urlparse(base).netloc.replace('www.', '')
+    best = None
+    for m in re.finditer(r'<a\b[^>]*href=["\']([^"\'#]+)["\'][^>]*>(.*?)</a>', page_html, re.I | re.S):
+        href, label = m.group(1), re.sub(r'<[^>]+>', ' ', m.group(2))
+        url = urljoin(base, href)
+        u = urlparse(url)
+        if u.scheme not in ('http', 'https') or u.netloc.replace('www.', '') != host or u.path in ('', '/'):
+            continue
+        path_hit, label_hit = OFFER_LINK.search(u.path), OFFER_LINK.search(label)
+        if path_hit or (label_hit and len(label.strip()) < 40):
+            score = (2 if path_hit else 0) + (1 if label_hit else 0) - u.path.count('/') * 0.1
+            if not best or score > best[0]:
+                best = (score, url)
+    return best[1] if best else ''
 
 
 IG_SKIP = {'p', 'reel', 'reels', 'explore', 'accounts', 'stories', 'tv', 'about', 'developer', 'legal', 'direct', 'instagram'}
@@ -379,7 +423,8 @@ def save(db, brand, items, source_type, source_url, source_id, image, posted, st
             # one website deal per brand: if the % changes on the site, the same deal is updated (no doubling)
             key = brand['id'] + '|web'
             if key in SEEN:
-                touch(db, SEEN[key], {'title': str(f['title'])[:140], 'discount': f.get('discount') or '', 'expiresAt': expires})
+                touch(db, SEEN[key], {'title': str(f['title'])[:140], 'discount': f.get('discount') or '', 'expiresAt': expires,
+                                      'description': f.get('description') or '', 'sourceUrl': source_url})
                 continue
         else:
             key = offer_key(brand['id'], f.get('discount') or f['title'])
@@ -400,7 +445,7 @@ def save(db, brand, items, source_type, source_url, source_id, image, posted, st
         else:
             touch(db, did)
         SEEN[key] = did
-        SEEN_INFO.setdefault(did, (NOW, deal['title'], deal['discount'], expires))
+        SEEN_INFO.setdefault(did, (NOW, deal['title'], deal['discount'], expires, deal['description'], deal['sourceUrl']))
 
 
 SEEN_INFO = {}             # deal id -> (lastChecked, title, discount, expiresAt)
@@ -409,12 +454,13 @@ REFRESH = timedelta(hours=12)  # still-running deals are re-confirmed at most ev
 
 def touch(db, did, fields=None):
     """Update an existing deal only if something changed or it was not re-confirmed for 12h."""
-    seen, title, disc, exp = SEEN_INFO.get(did, (None, None, None, None))
-    changed = fields and (fields.get('title') != title or fields.get('discount') != disc or fields.get('expiresAt') != exp)
+    seen, *old = SEEN_INFO.get(did, (None, None, None, None, None, None))
+    keys = ('title', 'discount', 'expiresAt', 'description', 'sourceUrl')
+    changed = fields and any(k in fields and fields[k] != o for k, o in zip(keys, old))
     if not changed and seen and NOW - seen < REFRESH:
         return
     db.update('deals', did, dict(fields or {}, lastChecked=NOW))
-    SEEN_INFO[did] = (NOW, (fields or {}).get('title', title), (fields or {}).get('discount', disc), (fields or {}).get('expiresAt', exp))
+    SEEN_INFO[did] = (NOW, *[(fields or {}).get(k, o) for k, o in zip(keys, old)])
 
 
 def cleanup(db, stats):
@@ -439,7 +485,7 @@ def cleanup(db, stats):
             stats['deleted'] += 1
         elif not manual:
             SEEN[key] = d['id']
-            SEEN_INFO[d['id']] = (seen, d.get('title'), d.get('discount'), exp)
+            SEEN_INFO[d['id']] = (seen, d.get('title'), d.get('discount'), exp, d.get('description'), d.get('sourceUrl'))
 
 
 def sync_seed(db):
@@ -671,14 +717,19 @@ def main():
                     b['instagram'] = res[2]; upd['instagram'] = res[2]
                     log(f"   found Instagram: @{res[2]}")
                 # AI only when the offer on the page changed; otherwise reuse last time's result (saves Gemini quota)
-                sig = hashlib.sha1(json.dumps(summarize(res[0]), sort_keys=True).encode()).hexdigest()[:16]
-                if sig == b.get('pageSig') and isinstance(b.get('lastOffers'), list):
+                sig = 'v2' + hashlib.sha1(json.dumps(summarize(res[0]), sort_keys=True).encode()).hexdigest()[:16]
+                ai_ready = os.environ.get('GEMINI_API_KEY') and not AI_DOWN[0]
+                if sig == b.get('pageSig') and isinstance(b.get('lastOffers'), list) and (b.get('lastOffersAI') or not ai_ready):
                     items = b['lastOffers']; stats['ai_skipped'] = stats.get('ai_skipped', 0) + 1
                 else:
-                    items = extract(res[0], b)
-                    upd['pageSig'] = sig
+                    ai = ai_extract(res[0], b)
+                    items = find_offers(res[0]) if ai is None else \
+                        [f for f in ai if f and f.get('title') and summarize(f"{f.get('discount', '')} {f.get('title', '')}")][:3]
+                    upd['pageSig'] = sig; upd['lastOffersAI'] = ai is not None
                     upd['lastOffers'] = [{k: str(f.get(k) or '') for k in ('title', 'discount', 'description', 'ends')} for f in items or [] if f]
-                try: save(db, b, items, 'website', b['offersUrl'], None, res[1], None, stats)
+                    b.update(upd)
+                link = res[3] or b['offersUrl'] if len(res) > 3 else b['offersUrl']
+                try: save(db, b, items, 'website', link, None, res[1], None, stats)
                 except Exception as e: stats['errors'] += 1; log('   SAVE:', e)
             else:
                 stats['errors'] += 1; log('   WEB:', err)
