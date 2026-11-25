@@ -18,6 +18,12 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install requests cryptography
+      - name: Restore run cache (brands + deals list from earlier runs)
+        uses: actions/cache/restore@v4
+        with:
+          path: .state
+          key: dbstate-${{ github.run_id }}
+          restore-keys: dbstate-
       - name: Run Python scraper (Instagram, Facebook, websites + cleanup)
         run: python scraper/scrape.py
         env:
@@ -27,6 +33,13 @@ jobs:
           META_TOKEN: ${{ secrets.META_TOKEN }}
           SKIP_FACEBOOK: '1'
           MAX_MINUTES: '95'
+          STATE_FILE: .state/db.json
+      - name: Save run cache
+        if: always() && hashFiles('.state/db.json') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: .state
+          key: dbstate-${{ github.run_id }}
       - name: Publish live deal files to the website
         if: always()
         run: |

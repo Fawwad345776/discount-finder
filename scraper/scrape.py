@@ -74,12 +74,81 @@ class DB:
     def create(self, coll, doc_id, data):  # False if it already exists
         return self._call('POST', f'{self.base}/{coll}?documentId={doc_id}', {'fields': enc(data)['mapValue']['fields']}) is not None
 
-    def update(self, coll, doc_id, data):
-        mask = '&'.join('updateMask.fieldPaths=' + k for k in data)
+    def update(self, coll, doc_id, data, must_exist=False):
+        mask = '&'.join('updateMask.fieldPaths=' + k for k in data) + ('&currentDocument.exists=true' if must_exist else '')
         self._call('PATCH', f'{self.base}/{coll}/{doc_id}?{mask}', {'fields': enc(data)['mapValue']['fields']})
 
     def delete(self, coll, doc_id):
         self._call('DELETE', f'{self.base}/{coll}/{doc_id}')
+
+
+class CachedDB:
+    """Keeps brands/deals/meta in a local file between runs, so Firebase is read in full only once a day.
+    Every change is still written to Firebase straight away (and to the file)."""
+    COLLS = ('brands', 'deals', 'meta')
+
+    def __init__(self, db, path):
+        self.db, self.path, self.data, synced = db, Path(path), {}, None
+        try:
+            raw = json.loads(self.path.read_text())
+            self.data = _unjson(raw['data']); synced = datetime.fromisoformat(raw['synced'])
+        except Exception:
+            pass
+        full = os.environ.get('FULL_SYNC') == '1' or not synced or NOW - synced > timedelta(hours=22) \
+            or any(c not in self.data for c in self.COLLS)
+        if full:
+            self.data = {c: {d['id']: {k: v for k, v in d.items() if k != 'id'} for d in db.all(c)} for c in self.COLLS}
+            self.synced = NOW
+            log('== Full read from Firebase (once a day); saved to the run cache')
+        else:
+            self.synced = synced
+            log(f'== Using run cache from {synced:%Y-%m-%d %H:%M} UTC (no Firebase reads for brands/deals)')
+
+    def all(self, coll):
+        if coll in self.data:
+            return [dict(v, id=k) for k, v in self.data[coll].items()]
+        return self.db.all(coll)
+
+    def create(self, coll, doc_id, data):
+        ok = self.db.create(coll, doc_id, data)
+        if ok and coll in self.data:
+            self.data[coll][doc_id] = dict(data)
+        return ok
+
+    def update(self, coll, doc_id, data):
+        try:
+            self.db.update(coll, doc_id, data, must_exist=True)
+        except RuntimeError as e:
+            if 'Firestore 404' in str(e):  # deleted in admin since the last full read
+                if coll in self.data: self.data[coll].pop(doc_id, None)
+                return
+            raise
+        if coll in self.data:
+            self.data[coll].setdefault(doc_id, {}).update(data)
+
+    def delete(self, coll, doc_id):
+        self.db.delete(coll, doc_id)
+        if coll in self.data:
+            self.data[coll].pop(doc_id, None)
+
+    def save(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(json.dumps({'synced': self.synced.isoformat(), 'data': _tojson(self.data)}, separators=(',', ':')))
+
+
+def _tojson(v):
+    if isinstance(v, datetime): return {'$t': v.isoformat()}
+    if isinstance(v, dict): return {k: _tojson(x) for k, x in v.items()}
+    if isinstance(v, (list, tuple)): return [_tojson(x) for x in v]
+    return v
+
+
+def _unjson(v):
+    if isinstance(v, dict):
+        if set(v) == {'$t'}: return datetime.fromisoformat(v['$t'])
+        return {k: _unjson(x) for k, x in v.items()}
+    if isinstance(v, list): return [_unjson(x) for x in v]
+    return v
 
 
 def enc(v):
@@ -508,6 +577,8 @@ def main():
     if not sa:
         sys.exit('Set FIREBASE_SERVICE_ACCOUNT (path to the JSON file or the JSON text)')
     db = DB(sa)
+    if os.environ.get('STATE_FILE'):
+        db = CachedDB(db, os.environ['STATE_FILE'])
     stats = {'added': 0, 'deleted': 0, 'errors': 0}
     cleanup(db, stats)
     log(f"== Deleted {stats['deleted']} old/expired deals")
@@ -606,6 +677,8 @@ def main():
             db.update('brands', b['id'], upd)
 
     export_live(db)
+    if isinstance(db, CachedDB):
+        db.save()
     log('== Done', json.dumps(stats))
 
 

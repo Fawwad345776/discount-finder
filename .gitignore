@@ -1,3 +1,4 @@
 scraper/service-account.json
 *.json.key
 __pycache__/
+.state/
