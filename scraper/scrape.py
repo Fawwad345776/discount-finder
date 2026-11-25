@@ -241,7 +241,7 @@ def ai_extract(text, brand):
               '(max 3), e.g. "Black Friday Sale up to 70% off", "Buy 1 Get 1 on Zinger". Do NOT list single products with prices, '
               'policies, cashback terms or menus. JSON: {"deals":[{"title":"short English title","discount":"e.g. UP TO 30% OFF",'
               '"description":"one short line","ends":"YYYY-MM-DD or null"}]}. Empty list if none.\nText:\n' + text[:12000])
-    for model in [os.environ.get('GEMINI_MODEL', 'gemini-3.8-flash'), 'gemini-2.5-flash']:
+    for model in [os.environ.get('GEMINI_MODEL', 'gemini-3.8-flash')]:
         try:
             r = requests.post(f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}', timeout=60,
                               json={'contents': [{'parts': [{'text': prompt}]}],
@@ -502,7 +502,7 @@ def gemini_json(prompt, timeout=90):
     key = os.environ.get('GEMINI_API_KEY')
     if not key:
         return None
-    for model in [os.environ.get('GEMINI_MODEL', 'gemini-3.8-flash'), 'gemini-2.5-flash']:
+    for model in [os.environ.get('GEMINI_MODEL', 'gemini-3.8-flash')]:
         try:
             r = requests.post(f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}', timeout=timeout,
                               json={'contents': [{'parts': [{'text': prompt}]}],
@@ -547,6 +547,11 @@ def discover_brands(db, brands):
             'with their OFFICIAL website for this country. Skip these, already have them: ' + ', '.join(sorted(names))[:3000] + '. '
             'JSON: {"brands":[{"name":"","category":"Food|Fashion|Grocery|Electronics|Beauty|Home|Travel|Other",'
             '"website":"https://...","instagram":"username or empty"}]}')
+        if res is None:  # AI unavailable (e.g. daily quota used up) -> try this country again next run
+            log(f"== Discover {cc}: AI not available, will retry next run")
+            if AI_FAILS and any(k.endswith(' 429') for k in AI_FAILS):
+                break  # quota is over for today, no point asking for more countries
+            continue
         last[cc] = NOW.isoformat()
         cand = []
         for x in (res or {}).get('brands', [])[:25]:
