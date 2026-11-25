@@ -411,6 +411,81 @@ def export_live(db):
     log(f'== Exported {sum(map(len, by.values()))} live deals for {len(by)} countries to data/live/')
 
 
+def gemini_json(prompt, timeout=90):
+    key = os.environ.get('GEMINI_API_KEY')
+    if not key:
+        return None
+    for model in [os.environ.get('GEMINI_MODEL', 'gemini-3.8-flash'), 'gemini-2.5-flash']:
+        try:
+            r = requests.post(f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}', timeout=timeout,
+                              json={'contents': [{'parts': [{'text': prompt}]}],
+                                    'generationConfig': {'responseMimeType': 'application/json', 'temperature': 0.2}})
+            if r.ok:
+                return json.loads(r.json()['candidates'][0]['content']['parts'][0]['text'])
+        except Exception as e:
+            log('   AI error', model, e)
+    return None
+
+
+def domain(url):
+    return re.sub(r'^www\.', '', (url or '').split('//')[-1].split('/')[0].lower())
+
+
+def discover_brands(db, brands):
+    """Finds new popular brands for a few countries per run (AI suggests, website must really open), adds them."""
+    per_run = int(os.environ.get('DISCOVER_COUNTRIES', 8))
+    if per_run <= 0 or not os.environ.get('GEMINI_API_KEY'):
+        return []
+    countries = json.loads((ROOT / 'data/countries.json').read_text())
+    meta = next((m for m in db.all('meta') if m['id'] == 'discover'), None)
+    last = (meta or {}).get('last') or {}
+    count = {}
+    for b in brands:
+        count[b.get('country')] = count.get(b.get('country'), 0) + 1
+    # oldest-checked first; among those, the bigger markets (more brands already) first
+    order = sorted(countries, key=lambda c: (last.get(c['code'], ''), -count.get(c['code'], 0)))[:per_run]
+    added = []
+    from concurrent.futures import ThreadPoolExecutor
+    for c in order:
+        cc = c['code']
+        mine = [b for b in brands if b.get('country') == cc]
+        names = {b['name'].lower() for b in mine}
+        doms = {domain(b.get('offersUrl')) for b in mine}
+        res = gemini_json(
+            f"List up to 25 popular brands in {c['name']} ({cc}) whose discounts/sales people look for: restaurants & food chains, "
+            'food delivery apps, fashion, supermarkets, electronics, beauty, home, travel. Only real brands that operate in this country, '
+            'with their OFFICIAL website for this country. Skip these, already have them: ' + ', '.join(sorted(names))[:3000] + '. '
+            'JSON: {"brands":[{"name":"","category":"Food|Fashion|Grocery|Electronics|Beauty|Home|Travel|Other",'
+            '"website":"https://...","instagram":"username or empty"}]}')
+        last[cc] = NOW.isoformat()
+        cand = []
+        for x in (res or {}).get('brands', [])[:25]:
+            n, w = str(x.get('name', '')).strip(), str(x.get('website', '')).strip()
+            if not n or not w.startswith('http') or n.lower() in names or domain(w) in doms:
+                continue
+            names.add(n.lower()); doms.add(domain(w))
+            cand.append({'country': cc, 'name': n[:60], 'category': x.get('category') if x.get('category') in CATS else 'Other',
+                         'offersUrl': w, 'instagram': re.sub(r'[^A-Za-z0-9_.]', '', str(x.get('instagram') or ''))[:30].lower(),
+                         'cities': ['ALL']})
+
+        def ok(b):  # the website must really open (filters made-up brands)
+            try:
+                r = S.get(b['offersUrl'], timeout=20)
+                return r.status_code < 400 or r.status_code in (403, 429)  # 403/429 = site exists but blocks bots
+            except Exception:
+                return False
+        with ThreadPoolExecutor(10) as pool:
+            good = [b for b, g in zip(cand, pool.map(ok, cand)) if g]
+        for b in good:
+            bid = hashlib.sha1((b['country'] + b['name']).encode()).hexdigest()[:20]
+            if db.create('brands', bid, dict(b, active=True, source='auto', createdAt=NOW)):
+                added.append(dict(b, id=bid))
+        log(f"== Discover {cc}: AI suggested {len(cand)}, website OK {len(good)}, added {len(good)}")
+    if meta: db.update('meta', 'discover', {'last': last})
+    else: db.create('meta', 'discover', {'last': last})
+    return added
+
+
 def main():
     sa = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
     if not sa and (Path(__file__).parent / 'service-account.json').exists():
@@ -434,6 +509,12 @@ def main():
             continue
         same[k] = b['name']
         brands.append(b)
+    try:
+        new = discover_brands(db, brands)
+        brands += new
+        if new: log(f'== Discovered {len(new)} new brands')
+    except Exception as e:
+        log('discover skipped:', e)
     if os.environ.get('ONLY_COUNTRY'):
         brands = [b for b in brands if b.get('country') == os.environ['ONLY_COUNTRY']]
     epoch = datetime(2000, 1, 1, tzinfo=timezone.utc)
