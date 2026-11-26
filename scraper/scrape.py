@@ -126,6 +126,11 @@ class CachedDB:
         if coll in self.data:
             self.data[coll].setdefault(doc_id, {}).update(data)
 
+    def local_update(self, coll, doc_id, data):
+        """Only in the run cache (not written to Firebase)."""
+        if coll in self.data and doc_id in self.data[coll]:
+            self.data[coll][doc_id].update(data)
+
     def delete(self, coll, doc_id):
         self.db.delete(coll, doc_id)
         if coll in self.data:
@@ -844,10 +849,14 @@ def main():
                 except Exception as e: stats['errors'] += 1; log('   SAVE:', e)
             else:
                 stats['errors'] += 1; log('   WEB:', err)
-        last = b.get('lastRun')
-        if upd or not last or NOW - last > timedelta(hours=6):  # fewer Firebase writes
-            upd['lastRun'] = NOW
+        # "last checked" note: kept in the run cache every run, written to Firebase at most once a day
+        # (unless something real about the brand changed) -> far fewer Firebase writes
+        last = b.get('lastSaved') or b.get('lastRun')
+        if upd or not last or NOW - last > timedelta(hours=24):
+            upd.update(lastRun=NOW, lastSaved=NOW)
             db.update('brands', b['id'], upd)
+        elif isinstance(db, CachedDB):
+            db.local_update('brands', b['id'], {'lastRun': NOW})
 
     export_live(db)
     if isinstance(db, CachedDB):
