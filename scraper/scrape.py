@@ -554,12 +554,26 @@ def sync_seed(db):
         seed = json.loads((ROOT / 'data/brands-seed.json').read_text())
         meta = next((m for m in db.all('meta') if m['id'] == 'seed'), None)
         done = set(meta.get('ids') or []) if meta else {b['id'] for b in db.all('brands')}
-        added = 0
-        for b in seed:
-            bid = hashlib.sha1((b['country'] + b['name']).encode()).hexdigest()[:20]
-            if bid not in done:
+        added, dead = 0, []
+        new = [(hashlib.sha1((b['country'] + b['name']).encode()).hexdigest()[:20], b) for b in seed]
+        new = [(bid, b) for bid, b in new if bid not in done]
+
+        def opens(b):  # the website must really open (403/429 = site exists but blocks bots)
+            try:
+                r = S.get(b['offersUrl'], timeout=20)
+                return r.status_code < 400 or r.status_code in (403, 429)
+            except Exception:
+                return False
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(10) as pool:
+            ok = list(pool.map(opens, [b for _, b in new])) if meta else [True] * len(new)
+        for (bid, b), good in zip(new, ok):
+            if good:
                 added += db.create('brands', bid, dict(b, active=True, createdAt=NOW))
-                done.add(bid)
+            else:
+                dead.append(f"{b['country']} {b['name']}")
+            done.add(bid)
+        if dead: log(f'== Skipped {len(dead)} list brands whose website did not open: ' + ', '.join(dead[:40]))
         if meta: db.update('meta', 'seed', {'ids': sorted(done), 'at': NOW})
         else: db.create('meta', 'seed', {'ids': sorted(done), 'at': NOW})
         if added: log(f'== Added {added} new brands from brands-seed.json')
