@@ -580,19 +580,51 @@ def domain(url):
     return re.sub(r'^www\.', '', (url or '').split('//')[-1].split('/')[0].lower())
 
 
+FOCUS = [c for c in os.environ.get('FOCUS_COUNTRIES', 'PK,IN,US,TR,KW').split(',') if c]  # main markets
+FOCUS_TARGET = int(os.environ.get('FOCUS_TARGET', 200))  # brands per main market before others get most of the time
+NEXT_WAVE = ['AE', 'SA', 'QA', 'GB', 'BD', 'OM', 'BH', 'EG', 'JO', 'ID', 'MY', 'PH', 'NG', 'KE', 'ZA', 'CA', 'AU', 'DE', 'BR', 'MX']
+
+
+def discovery_order(countries, count, last, dry, per_run):
+    """Which countries the AI searches this run.
+    1) Main markets below FOCUS_TARGET brands get every slot (fewest brands first).
+    2) After that: 1 slot per run stays with the main markets (each gets a turn about twice a day),
+       the other slots go to the next wave, then the rest of the world (oldest-checked first).
+    A country where the AI found nothing new rests for 24h (no wasted free AI quota)."""
+    day_ago = (NOW - timedelta(hours=24)).isoformat()
+    rested = lambda cc: dry.get(cc, '') < day_ago
+    by_code = {c['code']: c for c in countries}
+    focus = [cc for cc in FOCUS if cc in by_code and rested(cc)]
+    short = sorted([cc for cc in focus if count.get(cc, 0) < FOCUS_TARGET], key=lambda cc: count.get(cc, 0))
+    pick = short[:per_run]
+    if len(pick) < per_run:
+        done_focus = sorted([cc for cc in focus if cc not in pick], key=lambda cc: last.get(cc, ''))
+        if not short and done_focus:
+            pick.append(done_focus[0])  # main markets keep getting new brands
+        wave = {cc: i for i, cc in enumerate(NEXT_WAVE)}
+        others = [c['code'] for c in countries if c['code'] not in FOCUS and rested(c['code'])]
+        others.sort(key=lambda cc: (last.get(cc, ''), wave.get(cc, 999), -count.get(cc, 0)))
+        if short:
+            others = []  # main markets not finished yet -> nobody else
+        pick += others[:per_run - len(pick)]
+    return [by_code[cc] for cc in pick]
+
+
 def discover_brands(db, brands):
     """Finds new popular brands for a few countries per run (AI suggests, website must really open), adds them."""
-    per_run = int(os.environ.get('DISCOVER_COUNTRIES', 8))
+    per_run = int(os.environ.get('DISCOVER_COUNTRIES', 5))
     if per_run <= 0 or not os.environ.get('GEMINI_API_KEY'):
         return []
     countries = json.loads((ROOT / 'data/countries.json').read_text())
     meta = next((m for m in db.all('meta') if m['id'] == 'discover'), None)
     last = (meta or {}).get('last') or {}
+    dry = (meta or {}).get('dry') or {}
     count = {}
     for b in brands:
-        count[b.get('country')] = count.get(b.get('country'), 0) + 1
-    # oldest-checked first; among those, the bigger markets (more brands already) first
-    order = sorted(countries, key=lambda c: (last.get(c['code'], ''), -count.get(c['code'], 0)))[:per_run]
+        if b.get('active') is not False:
+            count[b.get('country')] = count.get(b.get('country'), 0) + 1
+    order = discovery_order(countries, count, last, dry, per_run)
+    log('== Brand search this run: ' + ', '.join(f"{c['code']}({count.get(c['code'], 0)})" for c in order))
     added = []
     from concurrent.futures import ThreadPoolExecutor
     for c in order:
@@ -603,7 +635,7 @@ def discover_brands(db, brands):
         res = gemini_json(
             f"List up to 25 popular brands in {c['name']} ({cc}) whose discounts/sales people look for: restaurants & food chains, "
             'food delivery apps, fashion, supermarkets, electronics, beauty, home, travel. Only real brands that operate in this country, '
-            'with their OFFICIAL website for this country. Skip these, already have them: ' + ', '.join(sorted(names))[:3000] + '. '
+            'with their OFFICIAL website for this country. Skip these, already have them: ' + ', '.join(sorted(names))[:8000] + '. '
             'JSON: {"brands":[{"name":"","category":"Food|Fashion|Grocery|Electronics|Beauty|Home|Travel|Other",'
             '"website":"https://...","instagram":"username or empty"}]}')
         if res is None:  # AI unavailable (e.g. daily quota used up) -> try this country again next run
@@ -634,9 +666,14 @@ def discover_brands(db, brands):
             bid = hashlib.sha1((b['country'] + b['name']).encode()).hexdigest()[:20]
             if db.create('brands', bid, dict(b, active=True, source='auto', createdAt=NOW)):
                 added.append(dict(b, id=bid))
+        if good:
+            dry.pop(cc, None)
+        else:
+            dry[cc] = NOW.isoformat()  # nothing new -> rest this country for 24h
+        count[cc] = count.get(cc, 0) + len(good)
         log(f"== Discover {cc}: AI suggested {len(cand)}, website OK {len(good)}, added {len(good)}")
-    if meta: db.update('meta', 'discover', {'last': last})
-    else: db.create('meta', 'discover', {'last': last})
+    if meta: db.update('meta', 'discover', {'last': last, 'dry': dry})
+    else: db.create('meta', 'discover', {'last': last, 'dry': dry})
     return added
 
 
