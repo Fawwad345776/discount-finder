@@ -587,7 +587,8 @@ NEXT_WAVE = ['AE', 'SA', 'QA', 'GB', 'BD', 'OM', 'BH', 'EG', 'JO', 'ID', 'MY', '
 
 def discovery_order(countries, count, last, dry, per_run):
     """Which countries the AI searches this run.
-    1) Main markets below FOCUS_TARGET brands get every slot (fewest brands first).
+    1) Main markets below FOCUS_TARGET brands get slots first (fewest brands first); a slot freed by a
+       finished main market goes straight to the next country (UAE, Saudi, ...).
     2) After that: 1 slot per run stays with the main markets (each gets a turn about twice a day),
        the other slots go to the next wave, then the rest of the world (oldest-checked first).
     A country where the AI found nothing new rests for 24h (no wasted free AI quota)."""
@@ -604,8 +605,6 @@ def discovery_order(countries, count, last, dry, per_run):
         wave = {cc: i for i, cc in enumerate(NEXT_WAVE)}
         others = [c['code'] for c in countries if c['code'] not in FOCUS and rested(c['code'])]
         others.sort(key=lambda cc: (last.get(cc, ''), wave.get(cc, 999), -count.get(cc, 0)))
-        if short:
-            others = []  # main markets not finished yet -> nobody else
         pick += others[:per_run - len(pick)]
     return [by_code[cc] for cc in pick]
 
