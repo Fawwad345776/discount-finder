@@ -224,7 +224,54 @@ def summarize(text):
         return None
     label = event or ('Offer' if bogo and not pcts else 'Sale')
     title = f'{label} - {disc.title().replace("Off", "OFF")}' if disc != 'SALE' else event
-    return {'title': title, 'discount': disc, 'description': offer_line(text, pcts and max(pcts), bogo or flat or ev), 'ends': None}
+    desc = offer_line(text, pcts and max(pcts), bogo or flat or ev)
+    if not desc and len(pcts) >= 3:  # product grid with -% badges: describe what is on sale
+        lo, hi = min(pcts), max(pcts)
+        desc = f"{len(pcts)}+ products on sale, {lo}% to {hi}% off" if lo != hi else f"{len(pcts)}+ products at {hi}% off"
+    return {'title': title, 'discount': disc, 'description': desc, 'ends': find_end_date(text)}
+
+
+MONTHS = {m: i + 1 for i, m in enumerate(['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'])}
+END_WORDS = r'(?:till|until|untill|upto|up\s?to|ends?|ending|valid\s(?:till|until|through|thru)|offer\s(?:ends|valid\still)|last\sday|expires?|through|thru)'
+MON = r'(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?'
+END_RES = [
+    re.compile(END_WORDS + r'[:\s]+(?:on\s)?(?:[a-z]+day,?\s)?(\d{1,2})(?:st|nd|rd|th)?\s(?:of\s)?' + MON + r'(?:,?\s(\d{4}))?', re.I),   # till 30th Nov 2026
+    re.compile(END_WORDS + r'[:\s]+(?:on\s)?(?:[a-z]+day,?\s)?' + MON + r'\s(\d{1,2})(?:st|nd|rd|th)?(?:,?\s(\d{4}))?', re.I),            # ends November 30, 2026
+    re.compile(END_WORDS + r'[:\s]+(?:on\s)?(\d{1,2})[/.-](\d{1,2})(?:[/.-](\d{2,4}))?', re.I),                                      # till 30/11/2026
+]
+
+
+def find_end_date(text):
+    """End date written on the page ("till 30 Nov", "ends November 30", "valid until 30/11"). ISO date or None."""
+    today = NOW.date()
+    for i, rx in enumerate(END_RES):
+        for m in rx.finditer(text):
+            try:
+                if i == 0:
+                    d, mon, y = int(m.group(1)), MONTHS[m.group(2)[:3].lower()], m.group(3)
+                elif i == 1:
+                    mon, d, y = MONTHS[m.group(1)[:3].lower()], int(m.group(2)), m.group(3)
+                else:
+                    a, b, y = int(m.group(1)), int(m.group(2)), m.group(3)
+                    d, mon = (a, b)                               # tried both ways below (30/11 and 11/30)
+                year = int(y) + (2000 if y and len(y) == 2 else 0) if y else today.year
+                options = [(d, mon)] if i < 2 else [(a, b), (b, a)]
+                fits = set()
+                for dd, mm in options:
+                    try:
+                        end = datetime(year, mm, dd).date()
+                    except ValueError:
+                        continue
+                    if not y and end < today - timedelta(days=60):
+                        end = end.replace(year=year + 1)          # "till 5 Jan" seen in December
+                    # a recently passed date is kept: the deal is then skipped as expired
+                    if today - timedelta(days=60) <= end <= today + timedelta(days=120):
+                        fits.add(end)
+                if len(fits) == 1:
+                    return fits.pop().isoformat()
+            except (ValueError, KeyError):
+                continue
+    return None
 
 
 PRICE_LINE = re.compile(r'(regular|sale|unit|original)\s?price|add to (basket|cart|bag)|view all|out of stock|'
@@ -241,7 +288,7 @@ def offer_line(text, top_pct, other_match):
     else:
         return ''
     good = [p for p in parts if hit.search(p) and 15 <= len(p) <= 180 and len(re.findall(r'[A-Za-z]{3,}', p)) >= 3
-            and not PRICE_LINE.search(p)]  # product cards ("Sale price PKR 3,534 Regular price") are not offer lines
+            and not PRICE_LINE.search(p) and p.count('%') <= 2]  # product cards ("Sale price PKR 3,534 Regular price") are not offer lines
     if not good:
         return ''
     best = re.sub(r'\s+', ' ', min(good, key=lambda p: abs(len(p) - 80)))  # a full but short sentence
@@ -766,7 +813,8 @@ def main():
                     b['instagram'] = res[2]; upd['instagram'] = res[2]
                     log(f"   found Instagram: @{res[2]}")
                 # AI only when the offer on the page changed; otherwise reuse last time's result (saves Gemini quota)
-                sig = 'v2' + hashlib.sha1(json.dumps(summarize(res[0]), sort_keys=True).encode()).hexdigest()[:16]
+                _sm = summarize(res[0]) or {}
+                sig = 'v3' + hashlib.sha1(json.dumps([_sm.get('title'), _sm.get('discount'), _sm.get('ends')]).encode()).hexdigest()[:16]
                 ai_ready = os.environ.get('GEMINI_API_KEY') and not AI_DOWN[0]
                 if sig == b.get('pageSig') and isinstance(b.get('lastOffers'), list) and (b.get('lastOffersAI') or not ai_ready):
                     items = b['lastOffers']; stats['ai_skipped'] = stats.get('ai_skipped', 0) + 1
