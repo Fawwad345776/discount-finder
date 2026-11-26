@@ -40,6 +40,15 @@
   .pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;padding:10px;box-sizing:border-box}
   .body p,.body h3{overflow-wrap:anywhere}
   .src{font-size:.75rem;color:var(--muted);font-weight:600}
+  .items{list-style:none;margin:8px 0 2px;padding:0;display:flex;flex-direction:column;gap:6px}
+  .items a{display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;background:#faf7f5;border-radius:10px;padding:6px 8px}
+  .items img,.items i{width:38px;height:38px;border-radius:8px;object-fit:cover;flex:none;background:#fff}
+  .items i{display:grid;place-items:center;font-style:normal;color:var(--muted)}
+  .items .n{flex:1;min-width:0;font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .items .n small{display:block;font-weight:500;color:var(--muted)}
+  .items .n s{color:var(--muted);font-weight:400}
+  .items .p{flex:none;background:var(--red);color:#fff;font-weight:800;font-size:.75rem;border-radius:8px;padding:3px 7px}
+  .more{font-size:.8rem;font-weight:700;color:var(--red);text-decoration:none}
   .pic b{font-size:2.6rem;font-weight:800;color:var(--red);opacity:.85}
   .off{position:absolute;top:10px;left:10px;background:var(--red);color:#fff;font-weight:800;font-size:.85rem;padding:5px 10px;border-radius:10px}
   .body{padding:14px;display:flex;flex-direction:column;gap:4px;flex:1}
@@ -144,7 +153,7 @@ function render(){
   $('grid').innerHTML=list.length?list.map(d=>`
     <article class="deal">
       <div class="pic">${d.image?`<img src="${esc(d.image.replace(/^http:/,'https:'))}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:this.dataset.l}))" data-l="${esc((d.brand||'?')[0])}">`:`<b>${esc((d.brand||'?')[0])}</b>`}${d.discount?`<span class="off">${esc(d.discount)}</span>`:''}</div>
-      <div class="body"><span class="brand">${esc(d.brand)}</span><h3>${esc(d.title)}</h3><p>${esc(d.description||detail(d))}</p>
+      <div class="body"><span class="brand">${esc(d.brand)}</span><h3>${esc(d.title)}</h3><p>${esc(d.description||detail(d))}</p>${products(d)}
         <span class="src">${SRC[d.sourceType]||'🌐 From brand website'}${d.category?' · '+esc(d.category):''}</span>
         <div class="meta">
           ${d.expiresAt?`<span class="ends">⏳ Ends in ${DF.timeLeft(d.expiresAt,now)} · ${DF.fmtInTz(d.expiresAt,d.tz)}</span>`:`<span class="ok">✅ Checked ${Math.max(1,Math.round((now-d.lastChecked)/3600e3))}h ago — still active</span>`}
@@ -154,6 +163,17 @@ function render(){
     </article>`).join(''):`<div class="empty"><b>🔍</b>No live deals here yet.<br>New offers are added every 2 hours — check back soon.</div>`;
 }
 const SRC={website:'🌐 From brand website',instagram:'📸 From Instagram',facebook:'📘 From Facebook',manual:'✔️ Added by Discount Finder'};
+const money=(v,c)=>{const n=Number(v);if(!n)return'';return (c?c+' ':'')+n.toLocaleString(undefined,{maximumFractionDigits:n%1?2:0});};
+function products(d){ // products on sale with real prices (from the brand's shop)
+  const P=(d.products||[]).filter(x=>x&&x.name);
+  if(!P.length) return '';
+  const show=P.slice(0,3);
+  return `<ul class="items">${show.map(x=>`<li><a href="${esc(x.url||d.sourceUrl||'#')}" target="_blank" rel="noopener">
+      ${x.image?`<img src="${esc(x.image.replace(/^http:/,'https:'))}" alt="" loading="lazy" onerror="this.replaceWith(document.createElement('i'))">`:'<i>🛍️</i>'}
+      <span class="n">${esc(x.name)}<small>${money(x.price,x.currency)}${x.was?` <s>${money(x.was,x.currency)}</s>`:''}</small></span>
+      <span class="p">-${Number(x.off)}%</span></a></li>`).join('')}</ul>
+    ${P.length>3?`<a class="more" href="${esc(d.sourceUrl||'#')}" target="_blank" rel="noopener">+ more products on sale ↗</a>`:''}`;
+}
 function detail(d){ // when the brand's page gives no sentence about the offer
   const off=(d.discount||'').toLowerCase();
   if(/buy\s?\d\s?get/.test(off)) return `${d.brand} is running a ${d.discount.toLowerCase()} offer. Tap View offer for the items included.`;

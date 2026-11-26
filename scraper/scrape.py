@@ -434,7 +434,65 @@ def scrape_website(url):
     r = S.get(url, timeout=25)
     r.raise_for_status()
     img = re.search(r'<meta[^>]+property="og:image"[^>]+content="([^"]+)"', r.text)
-    return html_to_text(r.text), (img.group(1) if img else ''), find_instagram(r.text), find_offers_page(r.text, r.url)
+    return (html_to_text(r.text), (img.group(1) if img else ''), find_instagram(r.text), find_offers_page(r.text, r.url),
+            shop_sale(r.text, r.url))
+
+
+CURRENCY = {'PK': 'PKR', 'IN': 'INR', 'US': 'USD', 'TR': 'TRY', 'KW': 'KWD', 'AE': 'AED', 'SA': 'SAR', 'QA': 'QAR', 'BH': 'BHD',
+            'OM': 'OMR', 'GB': 'GBP', 'BD': 'BDT', 'EG': 'EGP', 'CA': 'CAD', 'AU': 'AUD'}
+
+
+def _money(x):
+    try:
+        return float(str(x).replace(',', ''))
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def shop_sale(page_html, url):
+    """Products on sale with their real prices, read from the shop itself (Shopify or WooCommerce).
+    Returns {'count','lo','hi','currency','products':[top 5]} or None."""
+    from urllib.parse import urlparse
+    u = urlparse(url); origin = f'{u.scheme}://{u.netloc}'
+    cur = re.search(r'Shopify\.currency\s*=\s*\{"active":"([A-Z]{3})"', page_html) or \
+          re.search(r'property="(?:og:price:currency|product:price:currency)"[^>]+content="([A-Z]{3})"', page_html)
+    cur = cur.group(1) if cur else ''
+    found = []
+    try:
+        if 'cdn.shopify.com' in page_html or 'Shopify.theme' in page_html:
+            r = S.get(origin + '/products.json?limit=250', timeout=20)
+            for p in (r.json().get('products', []) if r.ok else []):
+                best = None
+                for v in p.get('variants', []):
+                    now, was = _money(v.get('price')), _money(v.get('compare_at_price'))
+                    if was > now > 0:
+                        off = round((was - now) / was * 100)
+                        if not best or off > best[0]:
+                            best = (off, now, was)
+                if best and MIN_PCT <= best[0] <= MAX_PCT:
+                    img = (p.get('images') or [{}])[0].get('src', '')
+                    found.append({'name': p.get('title', '')[:70], 'off': best[0], 'price': best[1], 'was': best[2],
+                                  'url': f"{origin}/products/{p.get('handle', '')}", 'image': img})
+        elif 'wp-content' in page_html and 'woocommerce' in page_html.lower():
+            r = S.get(origin + '/wp-json/wc/store/v1/products?on_sale=true&per_page=100', timeout=20)
+            for p in (r.json() if r.ok else []):
+                pr = p.get('prices') or {}
+                minor = 10 ** int(pr.get('currency_minor_unit') or 0)
+                now, was = _money(pr.get('sale_price')) / minor, _money(pr.get('regular_price')) / minor
+                cur = cur or pr.get('currency_code', '')
+                if was > now > 0:
+                    off = round((was - now) / was * 100)
+                    if MIN_PCT <= off <= MAX_PCT:
+                        img = (p.get('images') or [{}])[0].get('src', '')
+                        found.append({'name': html.unescape(p.get('name', ''))[:70], 'off': off, 'price': now, 'was': was,
+                                      'url': p.get('permalink', ''), 'image': img})
+    except Exception:
+        return None
+    if not found:
+        return None
+    found.sort(key=lambda x: (-x['off'], not x['image']))
+    offs = [x['off'] for x in found]
+    return {'count': len(found), 'lo': min(offs), 'hi': max(offs), 'currency': cur, 'products': found[:5]}
 
 
 OFFER_LINK = re.compile(r'offer|deal|promo|discount|sale|coupon|voucher|black-?friday|عروض|خصم', re.I)
@@ -489,7 +547,8 @@ def save(db, brand, items, source_type, source_url, source_id, image, posted, st
             key = brand['id'] + '|web'
             if key in SEEN:
                 touch(db, SEEN[key], {'title': str(f['title'])[:140], 'discount': f.get('discount') or '', 'expiresAt': expires,
-                                      'description': f.get('description') or '', 'sourceUrl': source_url})
+                                      'description': f.get('description') or '', 'sourceUrl': source_url,
+                                      'products': f.get('products') or []})
                 continue
         else:
             key = offer_key(brand['id'], f.get('discount') or f['title'])
@@ -503,7 +562,7 @@ def save(db, brand, items, source_type, source_url, source_id, image, posted, st
                 'country': brand['country'], 'city': (brand.get('cities') or ['ALL'])[0], 'tz': tz,
                 'startsAt': None, 'expiresAt': expires, 'sourceType': source_type, 'sourceUrl': source_url,
                 'sourceId': source_id, 'image': image or '', 'status': 'active', 'extractor': 'python', 'v': VERSION,
-                'lastChecked': NOW, 'createdAt': posted or NOW}
+                'lastChecked': NOW, 'createdAt': posted or NOW, 'products': f.get('products') or []}
         if db.create('deals', did, deal):
             stats['added'] += 1
             log(f"   + {brand['name']}: {deal['title'][:70]}")
@@ -520,7 +579,8 @@ REFRESH = timedelta(hours=12)  # still-running deals are re-confirmed at most ev
 def touch(db, did, fields=None):
     """Update an existing deal only if something changed or it was not re-confirmed for 12h."""
     seen, *old = SEEN_INFO.get(did, (None, None, None, None, None, None))
-    keys = ('title', 'discount', 'expiresAt', 'description', 'sourceUrl')
+    keys = ('title', 'discount', 'expiresAt', 'description', 'sourceUrl')  # 'products' is saved along, but price
+    # changes alone do not count as a change (saves Firebase writes); they go out with the next real change / 12h refresh
     changed = fields and any(k in fields and fields[k] != o for k, o in zip(keys, old))
     if not changed and seen and NOW - seen < REFRESH:
         return
@@ -587,7 +647,7 @@ def sync_seed(db):
 
 
 LIVE_FIELDS = ['brand', 'title', 'discount', 'description', 'category', 'country', 'city', 'tz', 'startsAt', 'expiresAt',
-               'sourceType', 'sourceUrl', 'image', 'status', 'lastChecked']
+               'sourceType', 'sourceUrl', 'image', 'status', 'lastChecked', 'products']
 
 
 def is_visible(d):
@@ -831,6 +891,7 @@ def main():
                 if res[2] and not b.get('instagram'):  # learned the brand's Instagram from its website
                     b['instagram'] = res[2]; upd['instagram'] = res[2]
                     log(f"   found Instagram: @{res[2]}")
+                shop = res[4] if len(res) > 4 else None
                 # AI only when the offer on the page changed; otherwise reuse last time's result (saves Gemini quota)
                 _sm = summarize(res[0]) or {}
                 sig = 'v3' + hashlib.sha1(json.dumps([_sm.get('title'), _sm.get('discount'), _sm.get('ends')]).encode()).hexdigest()[:16]
@@ -845,6 +906,16 @@ def main():
                     upd['lastOffers'] = [{k: str(f.get(k) or '') for k in ('title', 'discount', 'description', 'ends')} for f in items or [] if f]
                     b.update(upd)
                 link = res[3] or b['offersUrl'] if len(res) > 3 else b['offersUrl']
+                if shop:  # exact products and prices from the shop itself
+                    cur = shop['currency'] or CURRENCY.get(b['country'], '')
+                    ev = (items[0]['title'].split(' - ')[0] if items and items[0].get('title') and ' - ' in items[0]['title'] else 'Sale')
+                    disc = f"UP TO {shop['hi']}% OFF" if shop['lo'] != shop['hi'] else f"{shop['hi']}% OFF"
+                    n = f"{shop['count']}+" if shop['count'] >= 250 else str(shop['count'])
+                    desc = (f"{n} products on sale, {shop['lo']}% to {shop['hi']}% off" if shop['lo'] != shop['hi']
+                            else f"{n} products at {shop['hi']}% off")
+                    items = [{'title': f"{ev} - Up To {shop['hi']}% OFF", 'discount': disc, 'description': desc,
+                              'ends': (items[0].get('ends') if items else None) or _sm.get('ends'),
+                              'products': [dict(x, currency=cur) for x in shop['products']]}]
                 try: save(db, b, items, 'website', link, None, res[1], None, stats)
                 except Exception as e: stats['errors'] += 1; log('   SAVE:', e)
             else:
