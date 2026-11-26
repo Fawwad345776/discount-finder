@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Discount Finder: Offers & Deals in your city</title>
-<meta name="description" content="Find live discounts, sales and offers in your country and city — every country, updated every 6 hours.">
+<meta name="description" content="Find live discounts, sales and offers in your country and city — every country, updated every 2 hours.">
 <meta property="og:title" content="Discount Finder: Offers & Deals">
 <meta property="og:description" content="Live discounts, sales & offers in your city — every country.">
 <meta name="theme-color" content="#ff4d2e">
@@ -35,9 +35,11 @@
   .bar{display:flex;justify-content:space-between;align-items:center;margin:10px 0 12px;color:var(--muted);font-size:.9rem;gap:10px;flex-wrap:wrap}
   .demo{background:#fff4d6;color:#7a5200;border-radius:12px;padding:10px 14px;font-size:.88rem;font-weight:600;margin-top:14px}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;padding-bottom:40px}
-  .deal{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
-  .pic{height:130px;background:linear-gradient(135deg,#ffe1d6,#ffd0bd);display:grid;place-items:center;position:relative}
-  .pic img{width:100%;height:100%;object-fit:cover}
+  .deal{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+  .pic{height:140px;background:linear-gradient(135deg,#ffe1d6,#ffd0bd);display:grid;place-items:center;position:relative;overflow:hidden}
+  .pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;padding:10px;box-sizing:border-box}
+  .body p,.body h3{overflow-wrap:anywhere}
+  .src{font-size:.75rem;color:var(--muted);font-weight:600}
   .pic b{font-size:2.6rem;font-weight:800;color:var(--red);opacity:.85}
   .off{position:absolute;top:10px;left:10px;background:var(--red);color:#fff;font-weight:800;font-size:.85rem;padding:5px 10px;border-radius:10px}
   .body{padding:14px;display:flex;flex-direction:column;gap:4px;flex:1}
@@ -56,7 +58,7 @@
 <header><div class="wrap">
   <div class="top"><div class="logo"><i>%</i><span>Discount Finder<small>Offers & Deals</small></span></div></div>
   <h1>Every sale in your city,<br>in one place.</h1>
-  <p>Discounts and offers from brands in every country — checked every 6 hours.</p>
+  <p>Discounts and offers from brands in every country — checked every 2 hours.</p>
 </div></header>
 
 <main class="wrap">
@@ -141,14 +143,22 @@ function render(){
   $('count').textContent=`${list.length} live deal${list.length===1?'':'s'} in ${city?$('city').value+', ':''}${cName}`;
   $('grid').innerHTML=list.length?list.map(d=>`
     <article class="deal">
-      <div class="pic">${d.image?`<img src="${esc(d.image)}" alt="" loading="lazy" onerror="this.remove()">`:`<b>${esc((d.brand||'?')[0])}</b>`}${d.discount?`<span class="off">${esc(d.discount)}</span>`:''}</div>
-      <div class="body"><span class="brand">${esc(d.brand)}</span><h3>${esc(d.title)}</h3>${d.description?`<p>${esc(d.description)}</p>`:''}
+      <div class="pic">${d.image?`<img src="${esc(d.image.replace(/^http:/,'https:'))}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:this.dataset.l}))" data-l="${esc((d.brand||'?')[0])}">`:`<b>${esc((d.brand||'?')[0])}</b>`}${d.discount?`<span class="off">${esc(d.discount)}</span>`:''}</div>
+      <div class="body"><span class="brand">${esc(d.brand)}</span><h3>${esc(d.title)}</h3><p>${esc(d.description||detail(d))}</p>
+        <span class="src">${SRC[d.sourceType]||'🌐 From brand website'}${d.category?' · '+esc(d.category):''}</span>
         <div class="meta">
           ${d.expiresAt?`<span class="ends">⏳ Ends in ${DF.timeLeft(d.expiresAt,now)} · ${DF.fmtInTz(d.expiresAt,d.tz)}</span>`:`<span class="ok">✅ Checked ${Math.max(1,Math.round((now-d.lastChecked)/3600e3))}h ago — still active</span>`}
           <span class="loc">📍 ${d.city==='ALL'?'All of '+esc(cName):esc(d.city)}</span>
         </div></div>
-      ${d.sourceUrl&&d.sourceUrl!=='#'?`<a class="go" href="${esc(d.sourceUrl)}" target="_blank" rel="noopener">View offer ↗</a>`:''}
-    </article>`).join(''):`<div class="empty"><b>🔍</b>No live deals here yet.<br>New offers are added every 6 hours — check back soon.</div>`;
+      <a class="go" href="${esc(d.sourceUrl&&d.sourceUrl!=='#'?d.sourceUrl:'https://www.google.com/search?q='+encodeURIComponent(d.brand+' '+(d.title||'sale')))}" target="_blank" rel="noopener">View offer ↗</a>
+    </article>`).join(''):`<div class="empty"><b>🔍</b>No live deals here yet.<br>New offers are added every 2 hours — check back soon.</div>`;
+}
+const SRC={website:'🌐 From brand website',instagram:'📸 From Instagram',facebook:'📘 From Facebook',manual:'✔️ Added by Discount Finder'};
+function detail(d){ // when the brand's page gives no sentence about the offer
+  const off=(d.discount||'').toLowerCase();
+  if(/buy\s?\d\s?get/.test(off)) return `${d.brand} is running a ${d.discount.toLowerCase()} offer. Tap View offer for the items included.`;
+  if(off&&off!=='sale') return `${d.brand} has ${off} on selected items right now. Tap View offer to see what is on sale.`;
+  return `${d.brand} has a sale on right now. Tap View offer to see the items.`;
 }
 $('chips').innerHTML=CATS.map(c=>`<button class="chip${c==='All'?' on':''}" data-c="${c}">${c}</button>`).join('');
 $('chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;cat=b.dataset.c;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b));render();};
