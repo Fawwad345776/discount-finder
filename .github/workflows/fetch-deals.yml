@@ -3,12 +3,12 @@ on:
   schedule:
     - cron: '17 */2 * * *'
   workflow_dispatch: {}
-concurrency: fetch-deals
 permissions:
   contents: write
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    concurrency: fetch-deals   # only the scraping waits for another scrape; the 2h "next" wait blocks nothing
     timeout-minutes: 115
     steps:
       - uses: actions/checkout@v4
