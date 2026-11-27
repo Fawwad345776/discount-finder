@@ -1751,6 +1751,16 @@
  },
  {
   "country": "IN",
+  "name": "Minimalist",
+  "category": "Beauty",
+  "offersUrl": "https://beminimalist.co/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "IN",
   "name": "Nykaa",
   "category": "Beauty",
   "offersUrl": "https://www.nykaa.com/",
@@ -1811,6 +1821,16 @@
  },
  {
   "country": "IN",
+  "name": "WOW Skin Science",
+  "category": "Beauty",
+  "offersUrl": "https://www.buywow.in/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "IN",
   "name": "Boat",
   "category": "Electronics",
   "offersUrl": "https://www.boat-lifestyle.com/",
@@ -1854,6 +1874,16 @@
   "name": "Poorvika",
   "category": "Electronics",
   "offersUrl": "https://www.poorvika.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "IN",
+  "name": "Realme India",
+  "category": "Electronics",
+  "offersUrl": "https://www.realme.com/in/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -2021,6 +2051,16 @@
  },
  {
   "country": "IN",
+  "name": "Libas",
+  "category": "Fashion",
+  "offersUrl": "https://www.libas.in/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "IN",
   "name": "Lifestyle",
   "category": "Fashion",
   "offersUrl": "https://www.lifestylestores.com/in/en/",
@@ -2054,6 +2094,16 @@
   "name": "Meesho",
   "category": "Fashion",
   "offersUrl": "https://www.meesho.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "IN",
+  "name": "Mochi",
+  "category": "Fashion",
+  "offersUrl": "https://www.mochishoes.com/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -2104,6 +2154,16 @@
   "name": "Puma India",
   "category": "Fashion",
   "offersUrl": "https://in.puma.com/in/en",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "IN",
+  "name": "Rare Rabbit",
+  "category": "Fashion",
+  "offersUrl": "https://thehouseofrare.com/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -2351,6 +2411,16 @@
  },
  {
   "country": "IN",
+  "name": "Third Wave Coffee",
+  "category": "Food",
+  "offersUrl": "https://www.thirdwavecoffee.in/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "IN",
   "name": "Wow! Momo",
   "category": "Food",
   "offersUrl": "https://wowmomo.com/",
@@ -2441,6 +2511,16 @@
  },
  {
   "country": "IN",
+  "name": "Swiggy Instamart",
+  "category": "Grocery",
+  "offersUrl": "https://www.swiggy.com/instamart",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "IN",
   "name": "Zepto",
   "category": "Grocery",
   "offersUrl": "https://www.zeptonow.com/",
@@ -2475,6 +2555,16 @@
   "category": "Home",
   "offersUrl": "https://www.pepperfry.com/",
   "instagram": "pepperfry",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "IN",
+  "name": "Sleepwell",
+  "category": "Home",
+  "offersUrl": "https://www.sleepwellproducts.com/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -2524,6 +2614,16 @@
   "name": "Paytm",
   "category": "Other",
   "offersUrl": "https://paytm.com/offer",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "IN",
+  "name": "Air India",
+  "category": "Travel",
+  "offersUrl": "https://www.airindia.com/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -2871,6 +2971,16 @@
  },
  {
   "country": "KW",
+  "name": "MAC Kuwait",
+  "category": "Beauty",
+  "offersUrl": "https://www.maccosmetics.com.kw/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
   "name": "Sephora Kuwait",
   "category": "Beauty",
   "offersUrl": "https://www.sephora.com.kw/",
@@ -2884,6 +2994,16 @@
   "name": "Wojooh",
   "category": "Beauty",
   "offersUrl": "https://www.wojooh.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
+  "name": "Apple Kuwait (iSTYLE)",
+  "category": "Electronics",
+  "offersUrl": "https://kw.istyle.eu/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -2971,6 +3091,16 @@
  },
  {
   "country": "KW",
+  "name": "American Eagle Kuwait",
+  "category": "Fashion",
+  "offersUrl": "https://www.americaneagle.com.kw/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
   "name": "Babyshop Kuwait",
   "category": "Fashion",
   "offersUrl": "https://www.babyshopstores.com/kw/en/",
@@ -3014,6 +3144,16 @@
   "name": "Max Fashion Kuwait",
   "category": "Fashion",
   "offersUrl": "https://www.maxfashion.com/kw/en/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
+  "name": "Mothercare Kuwait",
+  "category": "Fashion",
+  "offersUrl": "https://www.mothercare.com.kw/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -3074,6 +3214,16 @@
   "name": "Splash Kuwait",
   "category": "Fashion",
   "offersUrl": "https://www.splashfashions.com/kw/en/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
+  "name": "Victoria's Secret Kuwait",
+  "category": "Fashion",
+  "offersUrl": "https://www.victoriassecret.com.kw/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -3201,6 +3351,16 @@
  },
  {
   "country": "KW",
+  "name": "Shake Shack Kuwait",
+  "category": "Food",
+  "offersUrl": "https://shakeshack.com.kw/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
   "name": "Slider Station",
   "category": "Food",
   "offersUrl": "https://sliderstation.com/",
@@ -3225,6 +3385,16 @@
   "category": "Food",
   "offersUrl": "https://www.talabat.com/kuwait",
   "instagram": "talabatkuwait",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
+  "name": "Texas Roadhouse Kuwait",
+  "category": "Food",
+  "offersUrl": "https://texasroadhouse.com.kw/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -3301,10 +3471,30 @@
  },
  {
   "country": "KW",
+  "name": "Talabat Mart Kuwait",
+  "category": "Grocery",
+  "offersUrl": "https://www.talabat.com/kuwait/talabat-mart",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
   "name": "The Sultan Center",
   "category": "Grocery",
   "offersUrl": "https://www.sultan-center.com/",
   "instagram": "thesultancenter",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
+  "name": "H&M Home Kuwait",
+  "category": "Home",
+  "offersUrl": "https://kw.hm.com/en/home/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -3354,6 +3544,16 @@
   "name": "Kuwait Airways",
   "category": "Travel",
   "offersUrl": "https://www.kuwaitairways.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "KW",
+  "name": "Wego Kuwait",
+  "category": "Travel",
+  "offersUrl": "https://www.wego.com.kw/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -4061,6 +4261,16 @@
  },
  {
   "country": "PK",
+  "name": "Rivaj UK",
+  "category": "Beauty",
+  "offersUrl": "https://rivajuk.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Saeed Ghani",
   "category": "Beauty",
   "offersUrl": "https://saeedghani.pk/",
@@ -4191,6 +4401,16 @@
  },
  {
   "country": "PK",
+  "name": "Paklap",
+  "category": "Electronics",
+  "offersUrl": "https://www.paklap.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "PriceOye",
   "category": "Electronics",
   "offersUrl": "https://priceoye.pk/",
@@ -4265,6 +4485,16 @@
   "category": "Fashion",
   "offersUrl": "https://www.alkaramstudio.com/",
   "instagram": "alkaramstudio",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Ammara Khan",
+  "category": "Fashion",
+  "offersUrl": "https://ammarakhan.com/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -4421,6 +4651,16 @@
  },
  {
   "country": "PK",
+  "name": "Elan",
+  "category": "Fashion",
+  "offersUrl": "https://elan.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Engine",
   "category": "Fashion",
   "offersUrl": "https://engine.com.pk/",
@@ -4465,6 +4705,16 @@
   "category": "Fashion",
   "offersUrl": "https://www.gulahmedshop.com/",
   "instagram": "gulahmedfashion",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Gul Ahmed Men",
+  "category": "Fashion",
+  "offersUrl": "https://www.gulahmedshop.com/men",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -4571,6 +4821,16 @@
  },
  {
   "country": "PK",
+  "name": "Mantra",
+  "category": "Fashion",
+  "offersUrl": "https://mantra.com.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
   "name": "Maria B",
   "category": "Fashion",
   "offersUrl": "https://www.mariab.pk/",
@@ -4604,6 +4864,16 @@
   "name": "Minnie Minors",
   "category": "Fashion",
   "offersUrl": "https://minnieminors.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Motifz",
+  "category": "Fashion",
+  "offersUrl": "https://motifz.com.pk/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -4645,6 +4915,16 @@
   "category": "Fashion",
   "offersUrl": "https://outfitters.com.pk/",
   "instagram": "outfitterspk",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Polo Republica",
+  "category": "Fashion",
+  "offersUrl": "https://polorepublica.com.pk/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -4855,6 +5135,16 @@
   "category": "Food",
   "offersUrl": "https://dunkin.pk/",
   "instagram": "dunkinpakistan",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Fri Chicks",
+  "category": "Food",
+  "offersUrl": "https://frichicks.com.pk/",
+  "instagram": "",
   "cities": [
    "ALL"
   ]
@@ -5184,6 +5474,16 @@
   "name": "Naheed",
   "category": "Grocery",
   "offersUrl": "https://www.naheed.pk/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "PK",
+  "name": "Pandamart",
+  "category": "Grocery",
+  "offersUrl": "https://www.foodpanda.pk/darkstore",
   "instagram": "",
   "cities": [
    "ALL"
@@ -5871,6 +6171,16 @@
  },
  {
   "country": "TR",
+  "name": "Golden Rose",
+  "category": "Beauty",
+  "offersUrl": "https://www.goldenrose.com.tr/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TR",
   "name": "Gratis",
   "category": "Beauty",
   "offersUrl": "https://www.gratis.com/",
@@ -5924,6 +6234,16 @@
   "name": "Beko Turkey",
   "category": "Electronics",
   "offersUrl": "https://www.beko.com.tr/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TR",
+  "name": "MediaMarkt TR Online",
+  "category": "Electronics",
+  "offersUrl": "https://www.mediamarkt.com.tr/tr/campaign/kampanyalar",
   "instagram": "",
   "cities": [
    "ALL"
@@ -6031,6 +6351,26 @@
  },
  {
   "country": "TR",
+  "name": "Defacto Kids",
+  "category": "Fashion",
+  "offersUrl": "https://www.defacto.com.tr/cocuk",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TR",
+  "name": "Derimod",
+  "category": "Fashion",
+  "offersUrl": "https://www.derimod.com.tr/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TR",
   "name": "Flo",
   "category": "Fashion",
   "offersUrl": "https://www.flo.com.tr/",
@@ -6081,6 +6421,16 @@
  },
  {
   "country": "TR",
+  "name": "Lumberjack Turkey",
+  "category": "Fashion",
+  "offersUrl": "https://www.lumberjack.com.tr/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TR",
   "name": "Mavi",
   "category": "Fashion",
   "offersUrl": "https://www.mavi.com/",
@@ -6114,6 +6464,16 @@
   "name": "Penti",
   "category": "Fashion",
   "offersUrl": "https://www.penti.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TR",
+  "name": "Twist",
+  "category": "Fashion",
+  "offersUrl": "https://www.twist.com.tr/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -6174,6 +6534,16 @@
   "name": "Getir Yemek",
   "category": "Food",
   "offersUrl": "https://getir.com/yemek/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TR",
+  "name": "Kahve Dünyası",
+  "category": "Food",
+  "offersUrl": "https://www.kahvedunyasi.com/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -6271,6 +6641,16 @@
  },
  {
   "country": "TR",
+  "name": "File Market",
+  "category": "Grocery",
+  "offersUrl": "https://www.file.com.tr/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TR",
   "name": "Getir",
   "category": "Grocery",
   "offersUrl": "https://getir.com/",
@@ -6361,6 +6741,16 @@
  },
  {
   "country": "TR",
+  "name": "Linens",
+  "category": "Home",
+  "offersUrl": "https://www.linens.com.tr/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TR",
   "name": "Madame Coco",
   "category": "Home",
   "offersUrl": "https://www.madamecoco.com/",
@@ -6404,6 +6794,16 @@
   "name": "Çiçeksepeti",
   "category": "Other",
   "offersUrl": "https://www.ciceksepeti.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "TR",
+  "name": "AJet",
+  "category": "Travel",
+  "offersUrl": "https://ajet.com/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -6601,6 +7001,16 @@
  },
  {
   "country": "US",
+  "name": "e.l.f. Cosmetics",
+  "category": "Beauty",
+  "offersUrl": "https://www.elfcosmetics.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "US",
   "name": "Apple US",
   "category": "Electronics",
   "offersUrl": "https://www.apple.com/us/shop",
@@ -6671,6 +7081,16 @@
  },
  {
   "country": "US",
+  "name": "Microsoft Store",
+  "category": "Electronics",
+  "offersUrl": "https://www.microsoft.com/en-us/store/b/sale",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "US",
   "name": "Newegg",
   "category": "Electronics",
   "offersUrl": "https://www.newegg.com/",
@@ -6711,6 +7131,16 @@
  },
  {
   "country": "US",
+  "name": "Aerie",
+  "category": "Fashion",
+  "offersUrl": "https://www.ae.com/us/en/c/aerie/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "US",
   "name": "American Eagle",
   "category": "Fashion",
   "offersUrl": "https://www.ae.com/",
@@ -6741,6 +7171,16 @@
  },
  {
   "country": "US",
+  "name": "Express",
+  "category": "Fashion",
+  "offersUrl": "https://www.express.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "US",
   "name": "Foot Locker",
   "category": "Fashion",
   "offersUrl": "https://www.footlocker.com/",
@@ -6764,6 +7204,16 @@
   "name": "H&M US",
   "category": "Fashion",
   "offersUrl": "https://www2.hm.com/en_us/sale.html",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "US",
+  "name": "Hollister",
+  "category": "Fashion",
+  "offersUrl": "https://www.hollisterco.com/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -6874,6 +7324,16 @@
   "name": "Shein US",
   "category": "Fashion",
   "offersUrl": "https://us.shein.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "US",
+  "name": "Skechers",
+  "category": "Fashion",
+  "offersUrl": "https://www.skechers.com/",
   "instagram": "",
   "cities": [
    "ALL"
@@ -7051,6 +7511,16 @@
  },
  {
   "country": "US",
+  "name": "Sonic Drive-In",
+  "category": "Food",
+  "offersUrl": "https://www.sonicdrivein.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "US",
   "name": "Starbucks US",
   "category": "Food",
   "offersUrl": "https://www.starbucks.com/",
@@ -7171,6 +7641,16 @@
  },
  {
   "country": "US",
+  "name": "Target Circle",
+  "category": "Grocery",
+  "offersUrl": "https://www.target.com/circle",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "US",
   "name": "Trader Joe's",
   "category": "Grocery",
   "offersUrl": "https://www.traderjoes.com/",
@@ -7204,6 +7684,16 @@
   "name": "Bed Bath & Beyond",
   "category": "Home",
   "offersUrl": "https://www.bedbathandbeyond.com/",
+  "instagram": "",
+  "cities": [
+   "ALL"
+  ]
+ },
+ {
+  "country": "US",
+  "name": "Crate & Barrel",
+  "category": "Home",
+  "offersUrl": "https://www.crateandbarrel.com/sale/",
   "instagram": "",
   "cities": [
    "ALL"
