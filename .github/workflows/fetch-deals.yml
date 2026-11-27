@@ -17,7 +17,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install requests cryptography
+      - run: pip install requests cryptography playwright
+      - name: Install headless Chrome (for websites built with JavaScript)
+        run: python -m playwright install --with-deps chromium
       - name: Restore run cache (brands + deals list from earlier runs)
         uses: actions/cache/restore@v4
         with:

@@ -192,7 +192,10 @@ def deal_id(*parts):
 
 def html_to_text(h):
     h = re.sub(r'(?is)<(script|style|noscript)[^>]*>.*?</\1>', ' ', h)
-    return re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', h))).strip()
+    h = re.sub(r'(?i)<(br|/?(div|p|li|ul|ol|h[1-6]|section|article|header|footer|tr|td|button|figcaption))\b[^>]*>', '\n', h)  # keep blocks apart
+    t = html.unescape(re.sub(r'<[^>]+>', ' ', h))
+    t = re.sub(r'[^\S\n]+', ' ', t)
+    return re.sub(r'\s*\n\s*', '\n', t).strip()
 
 
 # a real discount: "-30%", "30% off", "up to 50% off", "save 20%", "Buy 1 Get 1", "flat 500 off"
@@ -433,13 +436,83 @@ def scrape_facebook(page):
 def scrape_website(url):
     r = S.get(url, timeout=25)
     r.raise_for_status()
-    img = re.search(r'<meta[^>]+property="og:image"[^>]+content="([^"]+)"', r.text)
-    return (html_to_text(r.text), (img.group(1) if img else ''), find_instagram(r.text), find_offers_page(r.text, r.url),
-            shop_sale(r.text, r.url))
+    return parse_page(r.text, r.url)
+
+
+def parse_page(page_html, url):
+    img = re.search(r'<meta[^>]+property="og:image"[^>]+content="([^"]+)"', page_html)
+    return (html_to_text(page_html), (img.group(1) if img else ''), find_instagram(page_html), find_offers_page(page_html, url),
+            shop_sale(page_html, url))
+
+
+def render_pages(urls, limit_s=25):
+    """Opens pages in a real (headless) Chrome for sites built with JavaScript, where plain download shows an empty page.
+    Returns {url: (html, final_url)}. Needs `pip install playwright` + `playwright install chromium` (done in GitHub Actions)."""
+    out = {}
+    try:
+        from playwright.sync_api import sync_playwright
+    except Exception:
+        log('== JS rendering skipped (playwright not installed)')
+        return out
+    with sync_playwright() as p:
+        br = p.chromium.launch(args=['--no-sandbox'])
+        ctx = br.new_context(user_agent=UA, locale='en-US')
+        ctx.route('**/*', lambda r: r.abort() if r.request.resource_type in ('image', 'media', 'font') else r.continue_())
+        for u in urls:
+            pg = ctx.new_page()
+            try:
+                pg.goto(u, wait_until='domcontentloaded', timeout=limit_s * 1000)
+                try: pg.wait_for_load_state('networkidle', timeout=8000)
+                except Exception: pass
+                pg.mouse.wheel(0, 4000); pg.wait_for_timeout(1500)  # lazy sections (deals carousels) load on scroll
+                out[u] = (pg.content(), pg.url)
+            except Exception as e:
+                log('   RENDER:', u, str(e)[:80])
+            finally:
+                pg.close()
+        br.close()
+    return out
+
+
+PRICE_IN = re.compile(r'(?:rs\.?|pkr|kwd|kd|aed|sar|qar|bhd|omr|inr|₹|try|tl|₺|\$|£|€)\s?(\d[\d,]{1,6}(?:\.\d{1,2})?)|(\d[\d,]{1,6})\s?(?:rs|pkr|kwd|kd|aed|sar|tl|₺)\b', re.I)
+DEAL_WORD = re.compile(r'\b(deals?|special|offer|combo|saver|bundle|limited|only|just|starting|promo|value|bucket|platter|family)\b', re.I)
+
+
+def price_deals(text):
+    """Food deals given as a price, not a % ('Zinger Deal Rs 149', 'Family Bucket only Rs 1,999')."""
+    out, seen = [], set()
+    text = re.sub(r'\b(rs|no)\.', r'\1', text, flags=re.I)  # "Rs. 149" is not the end of a sentence
+    prev = ''
+    for part in re.split(r'(?<=[.!?])\s+|\s{2,}|[|•·\n]', text):
+        part = part.strip(' -|•·')
+        if PRICE_IN.fullmatch(part.strip()) and prev:  # price on its own line under the deal name
+            part, prev = prev + ' ' + part, ''
+        else:
+            prev = part if 3 <= len(part) <= 80 and not PRICE_IN.search(part) else ''
+        if not (6 <= len(part) <= 120) or not DEAL_WORD.search(part):
+            continue
+        m = PRICE_IN.search(part)
+        if not m:
+            continue
+        price = _money(m.group(1) or m.group(2))
+        name = re.sub(r'\s+', ' ', PRICE_IN.sub('', part)).strip(' -:@|')
+        if price <= 0 or len(name) < 4 or name.lower() in seen or PRICE_LINE.search(name):
+            continue
+        seen.add(name.lower())
+        out.append({'name': name[:70], 'price': price})
+    if not out:
+        return None
+    out.sort(key=lambda x: x['price'])
+    return out[:5]
 
 
 CURRENCY = {'PK': 'PKR', 'IN': 'INR', 'US': 'USD', 'TR': 'TRY', 'KW': 'KWD', 'AE': 'AED', 'SA': 'SAR', 'QA': 'QAR', 'BH': 'BHD',
             'OM': 'OMR', 'GB': 'GBP', 'BD': 'BDT', 'EG': 'EGP', 'CA': 'CAD', 'AU': 'AUD'}
+
+
+def money_txt(v, cur):
+    v = float(v)
+    return f"{cur + ' ' if cur else ''}{v:,.0f}" if v == int(v) else f"{cur + ' ' if cur else ''}{v:,.2f}"
 
 
 def _money(x):
@@ -849,6 +922,17 @@ def main():
     with ThreadPoolExecutor(10) as pool:
         pages = {} if only_social else {i: (r, e) for i, r, e in pool.map(fetch, [b for b in brands if b.get('offersUrl')])}
     log(f'== Fetched {sum(1 for r, e in pages.values() if r)} of {len(pages)} websites')
+    # sites built with JavaScript come back (almost) empty: open those in a real browser
+    by_id = {b['id']: b for b in brands}
+    thin = [i for i, (r, e) in pages.items() if r and len(r[0]) < 600][:int(os.environ.get('RENDER_MAX', 150))]
+    if thin and not only_social:
+        rendered = render_pages([by_id[i]['offersUrl'] for i in thin])
+        for i in thin:
+            got = rendered.get(by_id[i]['offersUrl'])
+            if got:
+                try: pages[i] = (parse_page(*got), None)
+                except Exception as e: log('   RENDER parse:', e)
+        log(f'== Opened {len(rendered)} of {len(thin)} JavaScript websites in a browser')
 
     blocked = {'IG': 0, 'FB': 0}  # after 5 blocks in a row we stop trying that site for this run (it is blocking us)
     for b in brands:
@@ -916,6 +1000,14 @@ def main():
                     items = [{'title': f"{ev} - Up To {shop['hi']}% OFF", 'discount': disc, 'description': desc,
                               'ends': (items[0].get('ends') if items else None) or _sm.get('ends'),
                               'products': [dict(x, currency=cur) for x in shop['products']]}]
+                if not items and b.get('category') == 'Food':
+                    pd = price_deals(res[0])
+                    if pd:
+                        cur = CURRENCY.get(b['country'], '')
+                        frm = money_txt(pd[0]['price'], cur)
+                        items = [{'title': f"Deals - From {frm}", 'discount': f"FROM {frm}",
+                                  'description': f"{pd[0]['name']} for {frm}" + (f" + {len(pd) - 1} more deals" if len(pd) > 1 else ''),
+                                  'ends': _sm.get('ends'), 'products': [dict(x, currency=cur) for x in pd]}]
                 try: save(db, b, items, 'website', link, None, res[1], None, stats)
                 except Exception as e: stats['errors'] += 1; log('   SAVE:', e)
             else:

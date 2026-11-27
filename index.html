@@ -177,9 +177,9 @@ function products(d){ // products on sale with real prices (from the brand's sho
   const show=P.slice(0,3);
   return `<ul class="items">${show.map(x=>`<li><a href="${esc(x.url||d.sourceUrl||'#')}" target="_blank" rel="noopener">
       ${x.image?`<img src="${esc(x.image.replace(/^http:/,'https:'))}" alt="" loading="lazy" onerror="this.replaceWith(document.createElement('i'))">`:'<i>🛍️</i>'}
-      <span class="n">${esc(x.name)}<small>${money(x.price,x.currency)}${x.was?` <s>${money(x.was,x.currency)}</s>`:''}</small></span>
-      <span class="p">-${Number(x.off)}%</span></a></li>`).join('')}</ul>
-    ${P.length>3?`<a class="more" href="${esc(d.sourceUrl||'#')}" target="_blank" rel="noopener">+ more products on sale ↗</a>`:''}`;
+      <span class="n">${esc(x.name)}<small>${x.off?money(x.price,x.currency):'Deal price'}${x.was?` <s>${money(x.was,x.currency)}</s>`:''}</small></span>
+      <span class="p">${x.off?'-'+Number(x.off)+'%':money(x.price,x.currency)}</span></a></li>`).join('')}</ul>
+    ${P.length>3?`<a class="more" href="${esc(d.sourceUrl||'#')}" target="_blank" rel="noopener">+ more ${P[0].off?'products on sale':'deals'} ↗</a>`:''}`;
 }
 function detail(d){ // when the brand's page gives no sentence about the offer
   const off=(d.discount||'').toLowerCase();
