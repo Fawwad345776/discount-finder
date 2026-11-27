@@ -48,6 +48,10 @@
   .items .n small{display:block;font-weight:500;color:var(--muted)}
   .items .n s{color:var(--muted);font-weight:400}
   .items .p{flex:none;background:var(--red);color:#fff;font-weight:800;font-size:.75rem;border-radius:8px;padding:3px 7px}
+  .acts{display:flex;gap:8px;margin:0 14px 14px}
+  .acts .go{margin:0;flex:1}
+  .share{flex:none;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px;font-weight:700;font-size:.9rem;cursor:pointer;font-family:inherit}
+  .deal.hl{border:2px solid var(--red);box-shadow:0 0 0 4px #ffe1d6}
   .more{font-size:.8rem;font-weight:700;color:var(--red);text-decoration:none}
   .pic b{font-size:2.6rem;font-weight:800;color:var(--red);opacity:.85}
   .off{position:absolute;top:10px;left:10px;background:var(--red);color:#fff;font-weight:800;font-size:.85rem;padding:5px 10px;border-radius:10px}
@@ -92,7 +96,9 @@ const flag=cc=>cc.replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt()));
 let countries=[], cities=[], deals=[], cat='All';
 const S={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 
+const LINK=new URLSearchParams(location.search); // shared link: ?c=PK&deal=<id>
 function guessCountry(){
+  if(/^[A-Z]{2}$/.test(LINK.get('c')||'')) return LINK.get('c');
   const saved=S.get('df-country'); if(saved) return saved;
   const reg=(navigator.languages||[navigator.language]).map(l=>(l.split('-')[1]||'').toUpperCase()).find(r=>r.length===2);
   return reg||'AE';
@@ -151,7 +157,7 @@ function render(){
     .sort((a,b)=>(a.expiresAt||Infinity)-(b.expiresAt||Infinity));
   $('count').textContent=`${list.length} live deal${list.length===1?'':'s'} in ${city?$('city').value+', ':''}${cName}`;
   $('grid').innerHTML=list.length?list.map(d=>`
-    <article class="deal">
+    <article class="deal${d.id===LINK.get('deal')?' hl':''}" id="d-${esc(d.id)}">
       <div class="pic">${d.image?`<img src="${esc(d.image.replace(/^http:/,'https:'))}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:this.dataset.l}))" data-l="${esc((d.brand||'?')[0])}">`:`<b>${esc((d.brand||'?')[0])}</b>`}${d.discount?`<span class="off">${esc(d.discount)}</span>`:''}</div>
       <div class="body"><span class="brand">${esc(d.brand)}</span><h3>${esc(d.title)}</h3><p>${esc(d.description||detail(d))}</p>${products(d)}
         <span class="src">${SRC[d.sourceType]||'🌐 From brand website'}${d.category?' · '+esc(d.category):''}</span>
@@ -159,7 +165,8 @@ function render(){
           ${d.expiresAt?`<span class="ends">⏳ Ends in ${DF.timeLeft(d.expiresAt,now)} · ${DF.fmtInTz(d.expiresAt,d.tz)}</span>`:`<span class="ok">✅ Checked ${Math.max(1,Math.round((now-d.lastChecked)/3600e3))}h ago — still active</span>`}
           <span class="loc">📍 ${d.city==='ALL'?'All of '+esc(cName):esc(d.city)}</span>
         </div></div>
-      <a class="go" href="${esc(d.sourceUrl&&d.sourceUrl!=='#'?d.sourceUrl:'https://www.google.com/search?q='+encodeURIComponent(d.brand+' '+(d.title||'sale')))}" target="_blank" rel="noopener">View offer ↗</a>
+      <div class="acts"><button class="share" data-id="${esc(d.id)}" aria-label="Share this deal">📤 Share</button>
+      <a class="go" href="${esc(d.sourceUrl&&d.sourceUrl!=='#'?d.sourceUrl:'https://www.google.com/search?q='+encodeURIComponent(d.brand+' '+(d.title||'sale')))}" target="_blank" rel="noopener">View offer ↗</a></div>
     </article>`).join(''):`<div class="empty"><b>🔍</b>No live deals here yet.<br>New offers are added every 2 hours — check back soon.</div>`;
 }
 const SRC={website:'🌐 From brand website',instagram:'📸 From Instagram',facebook:'📘 From Facebook',manual:'✔️ Added by Discount Finder'};
@@ -185,9 +192,21 @@ $('chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;cat=b.data
 $('country').onchange=async()=>{S.set('df-country',$('country').value);await loadCities();loadDeals();};
 $('city').oninput=()=>{S.set('df-city-'+$('country').value,$('city').value.trim());render();};
 $('q').oninput=render;
+// Share a deal (WhatsApp / any app). The link opens this site on that country with the deal highlighted.
+$('grid').addEventListener('click',async e=>{
+  const b=e.target.closest('.share'); if(!b) return;
+  const d=deals.find(x=>x.id===b.dataset.id); if(!d) return;
+  const url=`${location.origin}${location.pathname}?c=${encodeURIComponent($('country').value)}&deal=${encodeURIComponent(d.id)}`;
+  const text=`🔥 ${d.brand}: ${d.title}${d.description?' — '+d.description:''}`;
+  if(navigator.share){ try{ await navigator.share({title:'Discount Finder',text,url}); return; }catch(err){ if(err&&err.name==='AbortError') return; } }
+  window.open('https://wa.me/?text='+encodeURIComponent(text+'\n'+url),'_blank','noopener');
+});
 $('yr').textContent=new Date().getFullYear();
 $('demo').hidden=!DF.DEMO;
-(async()=>{await loadCountries();await loadCities();await loadDeals();})();
+(async()=>{await loadCountries();await loadCities();await loadDeals();
+  const id=LINK.get('deal'); const el=id&&document.getElementById('d-'+id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+})();
 setInterval(render,60e3); // hide deals the moment they expire
 </script>
 </body>

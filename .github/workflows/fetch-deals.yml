@@ -33,6 +33,7 @@ jobs:
           META_TOKEN: ${{ secrets.META_TOKEN }}
           SKIP_FACEBOOK: '1'
           MAX_MINUTES: '95'
+          DISCOVER_COUNTRIES: '0'   # AI brand search off: brands are added by hand (brands-seed.json)
           STATE_FILE: .state/db.json
       - name: Save run cache
         if: always() && hashFiles('.state/db.json') != ''
