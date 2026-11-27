@@ -296,7 +296,7 @@ def offer_line(text, top_pct, other_match):
     else:
         return ''
     good = [p for p in parts if hit.search(p) and 15 <= len(p) <= 180 and len(re.findall(r'[A-Za-z]{3,}', p)) >= 3
-            and not PRICE_LINE.search(p) and p.count('%') <= 2]  # product cards ("Sale price PKR 3,534 Regular price") are not offer lines
+            and not PRICE_LINE.search(p) and p.count('%') <= 2 and not re.search(r'^\d|\brs\.?\s*$', p, re.I)]  # product cards ("Sale price PKR 3,534 Regular price") are not offer lines
     if not good:
         return ''
     best = re.sub(r'\s+', ' ', min(good, key=lambda p: abs(len(p) - 80)))  # a full but short sentence
@@ -475,7 +475,8 @@ def render_pages(urls, limit_s=25):
 
 
 PRICE_IN = re.compile(r'(?:rs\.?|pkr|kwd|kd|aed|sar|qar|bhd|omr|inr|₹|try|tl|₺|\$|£|€)\s?(\d[\d,]{1,6}(?:\.\d{1,2})?)|(\d[\d,]{1,6})\s?(?:rs|pkr|kwd|kd|aed|sar|tl|₺)\b', re.I)
-DEAL_WORD = re.compile(r'\b(deals?|special|offer|combo|saver|bundle|limited|only|just|starting|promo|value|bucket|platter|family)\b', re.I)
+DEAL_WORD = re.compile(r'\b(deals?|combo|offer|promo|saver|bundle|limited\s(time|offer)|starting\s(from|at)|discount)\b', re.I)
+NOT_DEAL = re.compile(r'\b(add\s(to|on)|browse|order\snow|view\sall|view\smore|checkout|cart|sign\s?in|log\s?in|currently|menu|delivery\sfee|minimum\sorder)\b', re.I)
 
 
 def price_deals(text):
@@ -496,7 +497,8 @@ def price_deals(text):
             continue
         price = _money(m.group(1) or m.group(2))
         name = re.sub(r'\s+', ' ', PRICE_IN.sub('', part)).strip(' -:@|')
-        if price <= 0 or len(name) < 4 or name.lower() in seen or PRICE_LINE.search(name):
+        if price <= 0 or len(name) < 4 or name.lower() in seen or PRICE_LINE.search(name) or NOT_DEAL.search(name) \
+                or len(name.split()) > 9:
             continue
         seen.add(name.lower())
         out.append({'name': name[:70], 'price': price})
